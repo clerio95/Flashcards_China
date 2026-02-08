@@ -16,11 +16,11 @@
         --accent-light: #eef0ff;
         --border: #e1e4ef;
         --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        --danger: #d92d20;
+        --success: #12b76a;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
@@ -60,10 +60,7 @@
         box-shadow: var(--shadow);
       }
 
-      h2 {
-        margin-top: 0;
-        font-size: 20px;
-      }
+      h2 { margin-top: 0; font-size: 20px; }
 
       .flashcard {
         background: var(--accent-light);
@@ -76,16 +73,17 @@
         justify-content: center;
         gap: 12px;
         border: 1px solid transparent;
+        outline: none;
+        user-select: none;
       }
 
-      .flashcard strong {
-        font-size: 32px;
+      .flashcard:focus {
+        border-color: rgba(63, 82, 255, 0.35);
+        box-shadow: 0 0 0 4px rgba(63, 82, 255, 0.15);
       }
 
-      .flashcard span {
-        color: var(--muted);
-        font-size: 18px;
-      }
+      .flashcard strong { font-size: 32px; }
+      .flashcard span { color: var(--muted); font-size: 18px; }
 
       .controls {
         display: flex;
@@ -111,22 +109,18 @@
         color: #2b2f46;
       }
 
-      button:active {
-        transform: scale(0.98);
+      button.danger {
+        background: #fee4e2;
+        color: var(--danger);
       }
 
-      form {
-        display: grid;
-        gap: 12px;
-      }
+      button:active { transform: scale(0.98); }
 
-      label {
-        font-size: 14px;
-        color: var(--muted);
-      }
+      form { display: grid; gap: 12px; }
 
-      input[type="text"],
-      textarea {
+      label { font-size: 14px; color: var(--muted); }
+
+      input[type="text"], textarea {
         width: 100%;
         padding: 10px 12px;
         border-radius: 10px;
@@ -134,10 +128,7 @@
         font-size: 14px;
       }
 
-      textarea {
-        min-height: 80px;
-        resize: vertical;
-      }
+      textarea { min-height: 80px; resize: vertical; }
 
       .file-box {
         display: flex;
@@ -161,12 +152,18 @@
         border-radius: 10px;
         border: 1px solid var(--border);
         display: grid;
-        gap: 4px;
+        gap: 6px;
       }
 
       .list-item span {
         color: var(--muted);
         font-size: 13px;
+      }
+
+      .list-item-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
       }
 
       .badge {
@@ -180,6 +177,17 @@
         color: var(--accent);
       }
 
+      .status {
+        margin-top: 12px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        min-height: 18px;
+      }
+
+      .status.ok { color: var(--success); }
+      .status.err { color: var(--danger); }
+
       footer {
         text-align: center;
         color: var(--muted);
@@ -187,12 +195,11 @@
       }
 
       @media (max-width: 720px) {
-        .flashcard strong {
-          font-size: 26px;
-        }
+        .flashcard strong { font-size: 26px; }
       }
     </style>
   </head>
+
   <body>
     <header>
       <h1>Rotina de Flashcards de Mandarim</h1>
@@ -202,20 +209,26 @@
     <main>
       <section>
         <h2>Estudo rápido</h2>
-        <div class="flashcard" id="flashcard">
+        <div class="flashcard" id="flashcard" tabindex="0" role="group" aria-label="Flashcard">
           <strong id="card-hanzi">你好</strong>
           <span id="card-pinyin">Nǐ hǎo</span>
-          <span id="card-pt">Olá</span>
+          <span id="card-pt">••••••</span>
         </div>
+
         <div class="controls">
-          <button id="prev-card" class="secondary">Anterior</button>
-          <button id="flip-card">Mostrar tradução</button>
-          <button id="next-card">Próximo</button>
+          <button id="prev-card" class="secondary" type="button">Anterior</button>
+          <button id="flip-card" type="button">Mostrar tradução</button>
+          <button id="next-card" type="button">Próximo</button>
         </div>
+
         <div class="controls">
-          <button id="shuffle" class="secondary">Embaralhar</button>
+          <button id="shuffle" class="secondary" type="button">Embaralhar</button>
+          <button id="export-btn" class="secondary" type="button">Exportar .tsv</button>
+          <button id="reset-btn" class="danger" type="button">Resetar para padrão</button>
           <span class="badge" id="card-count">0 cartões</span>
         </div>
+
+        <div class="status" id="status" aria-live="polite"></div>
       </section>
 
       <section>
@@ -223,15 +236,15 @@
         <form id="manual-form">
           <div>
             <label for="hanzi">Chinês (hanzi)</label>
-            <input type="text" id="hanzi" required />
+            <input type="text" id="hanzi" required autocomplete="off" />
           </div>
           <div>
             <label for="pinyin">Pinyin</label>
-            <input type="text" id="pinyin" required />
+            <input type="text" id="pinyin" required autocomplete="off" />
           </div>
           <div>
             <label for="pt">Tradução (PT)</label>
-            <input type="text" id="pt" required />
+            <input type="text" id="pt" required autocomplete="off" />
           </div>
           <button type="submit">Salvar no banco</button>
         </form>
@@ -244,17 +257,14 @@
             Formato esperado: <strong>hanzi</strong> TAB <strong>pinyin</strong> TAB
             <strong>português</strong>. Cada linha é um flashcard.
           </p>
-          <input type="file" id="tsv-file" accept=".tsv" />
-          <button id="import-btn" class="secondary">Importar para o banco</button>
+          <input type="file" id="tsv-file" accept=".tsv,text/tab-separated-values,text/plain" />
+          <button id="import-btn" class="secondary" type="button">Importar para o banco</button>
         </div>
       </section>
 
       <section>
         <h2>Banco de dados local</h2>
-        <p>
-          Seus dados ficam salvos neste navegador. Você pode estudar offline e continuar do
-          mesmo ponto.
-        </p>
+        <p>Seus dados ficam salvos neste navegador. Você pode estudar offline e continuar do mesmo ponto.</p>
         <div class="list" id="card-list"></div>
       </section>
     </main>
@@ -262,99 +272,90 @@
     <footer>Feito para estudo contínuo de chinês mandarim.</footer>
 
     <script>
-      const STORAGE_KEY = "flashcards_mandarin_v1";
+      "use strict";
+
+      const STORAGE_KEY = "flashcards_mandarin_v2";
+
       const DEFAULT_CARDS = [
-        {
-          hanzi: "当然",
-          pinyin: "Dāngrán",
-          pt: "Claro / naturalmente",
-        },
-        {
-          hanzi: "例如",
-          pinyin: "Lìrú",
-          pt: "Por exemplo",
-        },
-        {
-          hanzi: "已经",
-          pinyin: "Yǐjīng",
-          pt: "Já / já aconteceu",
-        },
-        {
-          hanzi: "可能",
-          pinyin: "Kěnéng",
-          pt: "Talvez / possível",
-        },
-        {
-          hanzi: "不过",
-          pinyin: "Bùguò",
-          pt: "Porém / no entanto",
-        },
-        {
-          hanzi: "因为...所以...",
-          pinyin: "Yīnwèi... suǒyǐ...",
-          pt: "Porque... então...",
-        },
-        {
-          hanzi: "坚持",
-          pinyin: "Jiānchí",
-          pt: "Persistir",
-        },
-        {
-          hanzi: "提高",
-          pinyin: "Tígāo",
-          pt: "Melhorar / elevar",
-        },
-        {
-          hanzi: "安排",
-          pinyin: "Ānpái",
-          pt: "Organizar / agendar",
-        },
-        {
-          hanzi: "无论",
-          pinyin: "Wúlùn",
-          pt: "Não importa / independentemente de",
-        },
-        {
-          hanzi: "我最近一直在学习中文。",
-          pinyin: "Wǒ zuìjìn yìzhí zài xuéxí Zhōngwén.",
-          pt: "Ultimamente tenho estudado chinês continuamente.",
-        },
-        {
-          hanzi: "如果你有时间，我们可以一起练习。",
-          pinyin: "Rúguǒ nǐ yǒu shíjiān, wǒmen kěyǐ yìqǐ liànxí.",
-          pt: "Se você tiver tempo, podemos praticar juntos.",
-        },
-        {
-          hanzi: "我想提高听力和口语。",
-          pinyin: "Wǒ xiǎng tígāo tīnglì hé kǒuyǔ.",
-          pt: "Quero melhorar a escuta e a fala.",
-        },
-        {
-          hanzi: "今天的课程很有帮助。",
-          pinyin: "Jīntiān de kèchéng hěn yǒu bāngzhù.",
-          pt: "A aula de hoje foi muito útil.",
-        },
+        { hanzi: "当然", pinyin: "Dāngrán", pt: "Claro / naturalmente" },
+        { hanzi: "例如", pinyin: "Lìrú", pt: "Por exemplo" },
+        { hanzi: "已经", pinyin: "Yǐjīng", pt: "Já / já aconteceu" },
+        { hanzi: "可能", pinyin: "Kěnéng", pt: "Talvez / possível" },
+        { hanzi: "不过", pinyin: "Bùguò", pt: "Porém / no entanto" },
+        { hanzi: "因为...所以...", pinyin: "Yīnwèi... suǒyǐ...", pt: "Porque... então..." },
+        { hanzi: "坚持", pinyin: "Jiānchí", pt: "Persistir" },
+        { hanzi: "提高", pinyin: "Tígāo", pt: "Melhorar / elevar" },
+        { hanzi: "安排", pinyin: "Ānpái", pt: "Organizar / agendar" },
+        { hanzi: "无论", pinyin: "Wúlùn", pt: "Não importa / independentemente de" },
+        { hanzi: "我最近一直在学习中文。", pinyin: "Wǒ zuìjìn yìzhí zài xuéxí Zhōngwén.", pt: "Ultimamente tenho estudado chinês continuamente." },
+        { hanzi: "如果你有时间，我们可以一起练习。", pinyin: "Rúguǒ nǐ yǒu shíjiān, wǒmen kěyǐ yìqǐ liànxí.", pt: "Se você tiver tempo, podemos praticar juntos." },
+        { hanzi: "我想提高听力和口语。", pinyin: "Wǒ xiǎng tígāo tīnglì hé kǒuyǔ.", pt: "Quero melhorar a escuta e a fala." },
+        { hanzi: "今天的课程很有帮助。", pinyin: "Jīntiān de kèchéng hěn yǒu bāngzhù.", pt: "A aula de hoje foi muito útil." },
       ];
 
-      const flashcard = document.getElementById("flashcard");
-      const cardHanzi = document.getElementById("card-hanzi");
-      const cardPinyin = document.getElementById("card-pinyin");
-      const cardPt = document.getElementById("card-pt");
-      const cardCount = document.getElementById("card-count");
-      const listContainer = document.getElementById("card-list");
-      const manualForm = document.getElementById("manual-form");
-      const fileInput = document.getElementById("tsv-file");
-      const importBtn = document.getElementById("import-btn");
+      const el = (id) => document.getElementById(id);
+
+      const flashcard = el("flashcard");
+      const cardHanzi = el("card-hanzi");
+      const cardPinyin = el("card-pinyin");
+      const cardPt = el("card-pt");
+      const cardCount = el("card-count");
+      const listContainer = el("card-list");
+      const manualForm = el("manual-form");
+      const fileInput = el("tsv-file");
+      const importBtn = el("import-btn");
+      const statusEl = el("status");
+
+      const prevBtn = el("prev-card");
+      const nextBtn = el("next-card");
+      const flipBtn = el("flip-card");
+      const shuffleBtn = el("shuffle");
+      const exportBtn = el("export-btn");
+      const resetBtn = el("reset-btn");
 
       let deck = [];
       let currentIndex = 0;
-      let showTranslation = true;
+      let showTranslation = false;
+
+      function setStatus(message, type = "") {
+        statusEl.textContent = message || "";
+        statusEl.className = "status" + (type ? ` ${type}` : "");
+      }
+
+      function clampIndex() {
+        if (deck.length === 0) { currentIndex = 0; return; }
+        currentIndex = ((currentIndex % deck.length) + deck.length) % deck.length;
+      }
+
+      function makeKey(card) {
+        return `${card.hanzi}||${card.pinyin}||${card.pt}`.toLowerCase();
+      }
+
+      function normalizeText(s) {
+        if (typeof s !== "string") return "";
+        // remove BOM + normalize line endings handled elsewhere
+        return s.replace(/^\uFEFF/, "").trim();
+      }
+
+      function isValidCard(card) {
+        return (
+          card &&
+          typeof card.hanzi === "string" &&
+          typeof card.pinyin === "string" &&
+          typeof card.pt === "string" &&
+          normalizeText(card.hanzi).length > 0 &&
+          normalizeText(card.pinyin).length > 0 &&
+          normalizeText(card.pt).length > 0
+        );
+      }
 
       function saveDeck() {
         const payload = {
-          version: 1,
+          version: 2,
           updatedAt: new Date().toISOString(),
           cards: deck,
+          currentIndex,
+          showTranslation,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       }
@@ -363,16 +364,31 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) {
           deck = [...DEFAULT_CARDS];
+          currentIndex = 0;
+          showTranslation = false;
           saveDeck();
           return;
         }
-        const data = JSON.parse(raw);
-        if (!data || data.version !== 1 || !Array.isArray(data.cards)) {
+
+        try {
+          const data = JSON.parse(raw);
+          if (!data || data.version !== 2 || !Array.isArray(data.cards)) throw new Error("invalid");
+
+          deck = data.cards.filter(isValidCard);
+          currentIndex = Number.isInteger(data.currentIndex) ? data.currentIndex : 0;
+          showTranslation = typeof data.showTranslation === "boolean" ? data.showTranslation : false;
+          clampIndex();
+        } catch {
+          // fallback seguro
           deck = [...DEFAULT_CARDS];
+          currentIndex = 0;
+          showTranslation = false;
           saveDeck();
-          return;
         }
-        deck = data.cards;
+      }
+
+      function updateFlipButton() {
+        flipBtn.textContent = showTranslation ? "Ocultar tradução" : "Mostrar tradução";
       }
 
       function updateCardView() {
@@ -380,112 +396,310 @@
           cardHanzi.textContent = "Sem cartões";
           cardPinyin.textContent = "";
           cardPt.textContent = "Adicione novos cartões para estudar";
+          updateFlipButton();
           return;
         }
+
+        clampIndex();
         const card = deck[currentIndex];
+
         cardHanzi.textContent = card.hanzi;
         cardPinyin.textContent = card.pinyin;
         cardPt.textContent = showTranslation ? card.pt : "••••••";
+        updateFlipButton();
+      }
+
+      function createListItem(card, index) {
+        const item = document.createElement("div");
+        item.className = "list-item";
+        item.dataset.index = String(index);
+
+        const strong = document.createElement("strong");
+        strong.textContent = card.hanzi;
+
+        const pinyin = document.createElement("span");
+        pinyin.textContent = card.pinyin;
+
+        const pt = document.createElement("span");
+        pt.textContent = card.pt;
+
+        const actions = document.createElement("div");
+        actions.className = "list-item-actions";
+
+        const studyBtn = document.createElement("button");
+        studyBtn.type = "button";
+        studyBtn.className = "secondary";
+        studyBtn.textContent = "Estudar este";
+        studyBtn.dataset.action = "study";
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "danger";
+        delBtn.textContent = "Remover";
+        delBtn.dataset.action = "delete";
+
+        actions.appendChild(studyBtn);
+        actions.appendChild(delBtn);
+
+        item.appendChild(strong);
+        item.appendChild(pinyin);
+        item.appendChild(pt);
+        item.appendChild(actions);
+
+        return item;
       }
 
       function updateList() {
         listContainer.innerHTML = "";
-        deck.forEach((card) => {
-          const item = document.createElement("div");
-          item.className = "list-item";
-          item.innerHTML = `
-            <strong>${card.hanzi}</strong>
-            <span>${card.pinyin}</span>
-            <span>${card.pt}</span>
-          `;
-          listContainer.appendChild(item);
-        });
+        deck.forEach((card, idx) => listContainer.appendChild(createListItem(card, idx)));
         cardCount.textContent = `${deck.length} cartões`;
       }
 
       function addCard(card) {
-        deck.push(card);
+        if (!isValidCard(card)) {
+          setStatus("Preencha hanzi, pinyin e tradução.", "err");
+          return false;
+        }
+
+        // dedupe
+        const key = makeKey(card);
+        const keys = new Set(deck.map(makeKey));
+        if (keys.has(key)) {
+          setStatus("Esse cartão já existe (duplicado).", "err");
+          return false;
+        }
+
+        deck.push({
+          hanzi: normalizeText(card.hanzi),
+          pinyin: normalizeText(card.pinyin),
+          pt: normalizeText(card.pt),
+        });
+
         currentIndex = deck.length - 1;
         saveDeck();
         updateCardView();
         updateList();
+        setStatus("Cartão adicionado com sucesso.", "ok");
+        return true;
       }
 
       function parseTSV(text) {
-        const lines = text
+        const normalized = String(text || "")
+          .replace(/^\uFEFF/, "")   // BOM
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n");
+
+        const lines = normalized
           .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0);
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
+
         const cards = [];
-        lines.forEach((line) => {
-          const [hanzi, pinyin, pt] = line.split("\t");
-          if (hanzi && pinyin && pt) {
-            cards.push({
-              hanzi: hanzi.trim(),
-              pinyin: pinyin.trim(),
-              pt: pt.trim(),
-            });
-          }
-        });
+        for (const line of lines) {
+          const cols = line.split("\t");
+          const hanzi = normalizeText(cols[0] ?? "");
+          const pinyin = normalizeText(cols[1] ?? "");
+          const pt = normalizeText(cols[2] ?? "");
+          if (hanzi && pinyin && pt) cards.push({ hanzi, pinyin, pt });
+        }
         return cards;
       }
 
-      document.getElementById("prev-card").addEventListener("click", () => {
+      function fisherYatesShuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+
+      function exportTSV() {
+        if (deck.length === 0) {
+          setStatus("Não há cartões para exportar.", "err");
+          return;
+        }
+        const content = deck.map((c) => `${c.hanzi}\t${c.pinyin}\t${c.pt}`).join("\n");
+        const blob = new Blob([content], { type: "text/tab-separated-values;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "flashcards-mandarim.tsv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+        setStatus("Exportação concluída.", "ok");
+      }
+
+      function resetToDefault() {
+        deck = [...DEFAULT_CARDS];
+        currentIndex = 0;
+        showTranslation = false;
+        saveDeck();
+        updateCardView();
+        updateList();
+        setStatus("Banco resetado para o padrão.", "ok");
+      }
+
+      // --- events ---
+      prevBtn.addEventListener("click", () => {
         if (deck.length === 0) return;
-        currentIndex = (currentIndex - 1 + deck.length) % deck.length;
+        currentIndex = currentIndex - 1;
+        clampIndex();
+        saveDeck();
         updateCardView();
       });
 
-      document.getElementById("next-card").addEventListener("click", () => {
+      nextBtn.addEventListener("click", () => {
         if (deck.length === 0) return;
-        currentIndex = (currentIndex + 1) % deck.length;
+        currentIndex = currentIndex + 1;
+        clampIndex();
+        saveDeck();
         updateCardView();
       });
 
-      document.getElementById("flip-card").addEventListener("click", () => {
+      function flip() {
         showTranslation = !showTranslation;
+        saveDeck();
         updateCardView();
-      });
+      }
 
-      document.getElementById("shuffle").addEventListener("click", () => {
-        deck.sort(() => Math.random() - 0.5);
+      flipBtn.addEventListener("click", flip);
+
+      // clicar no card também vira
+      flashcard.addEventListener("click", flip);
+
+      shuffleBtn.addEventListener("click", () => {
+        if (deck.length < 2) return;
+        fisherYatesShuffle(deck);
         currentIndex = 0;
         saveDeck();
         updateCardView();
         updateList();
+        setStatus("Deck embaralhado.", "ok");
+      });
+
+      exportBtn.addEventListener("click", exportTSV);
+
+      resetBtn.addEventListener("click", () => {
+        const ok = confirm("Tem certeza? Isso vai apagar seus cartões e voltar ao padrão.");
+        if (!ok) return;
+        resetToDefault();
       });
 
       manualForm.addEventListener("submit", (event) => {
         event.preventDefault();
+        setStatus("");
+
         const card = {
-          hanzi: document.getElementById("hanzi").value.trim(),
-          pinyin: document.getElementById("pinyin").value.trim(),
-          pt: document.getElementById("pt").value.trim(),
+          hanzi: el("hanzi").value,
+          pinyin: el("pinyin").value,
+          pt: el("pt").value,
         };
-        if (!card.hanzi || !card.pinyin || !card.pt) {
-          return;
-        }
-        addCard(card);
-        manualForm.reset();
+
+        const added = addCard(card);
+        if (added) manualForm.reset();
       });
 
       importBtn.addEventListener("click", async () => {
-        const file = fileInput.files[0];
-        if (!file) return;
-        const text = await file.text();
-        const cards = parseTSV(text);
-        if (cards.length === 0) return;
-        cards.forEach((card) => deck.push(card));
-        currentIndex = deck.length - 1;
-        saveDeck();
-        updateCardView();
-        updateList();
-        fileInput.value = "";
+        setStatus("");
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          setStatus("Selecione um arquivo .tsv antes de importar.", "err");
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          const cards = parseTSV(text);
+
+          if (cards.length === 0) {
+            setStatus("Nenhuma linha válida encontrada. Verifique se está TAB-separado.", "err");
+            return;
+          }
+
+          const existing = new Set(deck.map(makeKey));
+          let imported = 0;
+          for (const c of cards) {
+            const key = makeKey(c);
+            if (existing.has(key)) continue;
+            deck.push(c);
+            existing.add(key);
+            imported++;
+          }
+
+          if (imported === 0) {
+            setStatus("Nada novo para importar (tudo duplicado).", "err");
+            return;
+          }
+
+          currentIndex = deck.length - 1;
+          saveDeck();
+          updateCardView();
+          updateList();
+          setStatus(`Importados ${imported} cartão(ões).`, "ok");
+          fileInput.value = "";
+        } catch {
+          setStatus("Falha ao ler o arquivo. Tente novamente.", "err");
+        }
       });
 
+      // ações na lista (delegação)
+      listContainer.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        const item = btn.closest(".list-item");
+        if (!item) return;
+
+        const index = Number(item.dataset.index);
+        if (!Number.isInteger(index) || index < 0 || index >= deck.length) return;
+
+        const action = btn.dataset.action;
+        if (action === "study") {
+          currentIndex = index;
+          saveDeck();
+          updateCardView();
+          setStatus("Indo para o cartão selecionado.", "ok");
+          flashcard.focus();
+          return;
+        }
+
+        if (action === "delete") {
+          const ok = confirm("Remover este cartão?");
+          if (!ok) return;
+
+          deck.splice(index, 1);
+
+          if (deck.length === 0) currentIndex = 0;
+          else if (currentIndex >= deck.length) currentIndex = deck.length - 1;
+
+          saveDeck();
+          updateCardView();
+          updateList();
+          setStatus("Cartão removido.", "ok");
+        }
+      });
+
+      // teclado: ← → troca / espaço ou Enter vira
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") { prevBtn.click(); }
+        if (e.key === "ArrowRight") { nextBtn.click(); }
+        if (e.key === " " || e.key === "Enter") {
+          // evita scroll quando espaço
+          if (document.activeElement === flashcard || document.activeElement === flipBtn) {
+            e.preventDefault();
+            flip();
+          }
+        }
+      });
+
+      // init
       loadDeck();
       updateCardView();
       updateList();
+      setStatus("Pronto. Use ← → para navegar e clique no cartão para virar.");
     </script>
   </body>
 </html>
