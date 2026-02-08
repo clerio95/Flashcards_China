@@ -20,7 +20,9 @@
         --success: #12b76a;
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
       body {
         margin: 0;
@@ -60,7 +62,10 @@
         box-shadow: var(--shadow);
       }
 
-      h2 { margin-top: 0; font-size: 20px; }
+      h2 {
+        margin-top: 0;
+        font-size: 20px;
+      }
 
       .flashcard {
         background: var(--accent-light);
@@ -82,8 +87,13 @@
         box-shadow: 0 0 0 4px rgba(63, 82, 255, 0.15);
       }
 
-      .flashcard strong { font-size: 32px; }
-      .flashcard span { color: var(--muted); font-size: 18px; }
+      .flashcard strong {
+        font-size: 32px;
+      }
+      .flashcard span {
+        color: var(--muted);
+        font-size: 18px;
+      }
 
       .controls {
         display: flex;
@@ -114,13 +124,22 @@
         color: var(--danger);
       }
 
-      button:active { transform: scale(0.98); }
+      button:active {
+        transform: scale(0.98);
+      }
 
-      form { display: grid; gap: 12px; }
+      form {
+        display: grid;
+        gap: 12px;
+      }
 
-      label { font-size: 14px; color: var(--muted); }
+      label {
+        font-size: 14px;
+        color: var(--muted);
+      }
 
-      input[type="text"], textarea {
+      input[type="text"],
+      textarea {
         width: 100%;
         padding: 10px 12px;
         border-radius: 10px;
@@ -128,7 +147,10 @@
         font-size: 14px;
       }
 
-      textarea { min-height: 80px; resize: vertical; }
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
 
       .file-box {
         display: flex;
@@ -185,8 +207,12 @@
         min-height: 18px;
       }
 
-      .status.ok { color: var(--success); }
-      .status.err { color: var(--danger); }
+      .status.ok {
+        color: var(--success);
+      }
+      .status.err {
+        color: var(--danger);
+      }
 
       footer {
         text-align: center;
@@ -194,8 +220,48 @@
         padding: 24px 20px 40px;
       }
 
+      /* Botão com tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 320px;
+        white-space: normal;
+        background: #111827;
+        color: #fff;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 1.35;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        z-index: 50;
+      }
+
+      .tooltip:hover::before {
+        content: "";
+        position: absolute;
+        bottom: calc(100% + 4px);
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: #111827 transparent transparent transparent;
+        z-index: 50;
+      }
+
       @media (max-width: 720px) {
-        .flashcard strong { font-size: 26px; }
+        .flashcard strong {
+          font-size: 26px;
+        }
       }
     </style>
   </head>
@@ -209,7 +275,13 @@
     <main>
       <section>
         <h2>Estudo rápido</h2>
-        <div class="flashcard" id="flashcard" tabindex="0" role="group" aria-label="Flashcard">
+        <div
+          class="flashcard"
+          id="flashcard"
+          tabindex="0"
+          role="group"
+          aria-label="Flashcard"
+        >
           <strong id="card-hanzi">你好</strong>
           <span id="card-pinyin">Nǐ hǎo</span>
           <span id="card-pt">••••••</span>
@@ -224,6 +296,17 @@
         <div class="controls">
           <button id="shuffle" class="secondary" type="button">Embaralhar</button>
           <button id="export-btn" class="secondary" type="button">Exportar .tsv</button>
+
+          <button
+            id="copy-prompt"
+            class="secondary tooltip"
+            type="button"
+            title="Copia um prompt pronto para você colar no ChatGPT e receber um TSV compatível."
+            data-tooltip="Clique para copiar o prompt completo. Depois cole no ChatGPT, troque o [TEMA: ...] e peça as 60 linhas. O resultado você salva como .tsv e importa aqui."
+          >
+            Copiar prompt TSV
+          </button>
+
           <button id="reset-btn" class="danger" type="button">Resetar para padrão</button>
           <span class="badge" id="card-count">0 cartões</span>
         </div>
@@ -257,14 +340,21 @@
             Formato esperado: <strong>hanzi</strong> TAB <strong>pinyin</strong> TAB
             <strong>português</strong>. Cada linha é um flashcard.
           </p>
-          <input type="file" id="tsv-file" accept=".tsv,text/tab-separated-values,text/plain" />
+          <input
+            type="file"
+            id="tsv-file"
+            accept=".tsv,text/tab-separated-values,text/plain"
+          />
           <button id="import-btn" class="secondary" type="button">Importar para o banco</button>
         </div>
       </section>
 
       <section>
         <h2>Banco de dados local</h2>
-        <p>Seus dados ficam salvos neste navegador. Você pode estudar offline e continuar do mesmo ponto.</p>
+        <p>
+          Seus dados ficam salvos neste navegador. Você pode estudar offline e continuar do
+          mesmo ponto.
+        </p>
         <div class="list" id="card-list"></div>
       </section>
     </main>
@@ -287,11 +377,56 @@
         { hanzi: "提高", pinyin: "Tígāo", pt: "Melhorar / elevar" },
         { hanzi: "安排", pinyin: "Ānpái", pt: "Organizar / agendar" },
         { hanzi: "无论", pinyin: "Wúlùn", pt: "Não importa / independentemente de" },
-        { hanzi: "我最近一直在学习中文。", pinyin: "Wǒ zuìjìn yìzhí zài xuéxí Zhōngwén.", pt: "Ultimamente tenho estudado chinês continuamente." },
-        { hanzi: "如果你有时间，我们可以一起练习。", pinyin: "Rúguǒ nǐ yǒu shíjiān, wǒmen kěyǐ yìqǐ liànxí.", pt: "Se você tiver tempo, podemos praticar juntos." },
-        { hanzi: "我想提高听力和口语。", pinyin: "Wǒ xiǎng tígāo tīnglì hé kǒuyǔ.", pt: "Quero melhorar a escuta e a fala." },
-        { hanzi: "今天的课程很有帮助。", pinyin: "Jīntiān de kèchéng hěn yǒu bāngzhù.", pt: "A aula de hoje foi muito útil." },
+        {
+          hanzi: "我最近一直在学习中文。",
+          pinyin: "Wǒ zuìjìn yìzhí zài xuéxí Zhōngwén.",
+          pt: "Ultimamente tenho estudado chinês continuamente.",
+        },
+        {
+          hanzi: "如果你有时间，我们可以一起练习。",
+          pinyin: "Rúguǒ nǐ yǒu shíjiān, wǒmen kěyǐ yìqǐ liànxí.",
+          pt: "Se você tiver tempo, podemos praticar juntos.",
+        },
+        {
+          hanzi: "我想提高听力和口语。",
+          pinyin: "Wǒ xiǎng tígāo tīnglì hé kǒuyǔ.",
+          pt: "Quero melhorar a escuta e a fala.",
+        },
+        {
+          hanzi: "今天的课程很有帮助。",
+          pinyin: "Jīntiān de kèchéng hěn yǒu bāngzhù.",
+          pt: "A aula de hoje foi muito útil.",
+        },
       ];
+
+      // Prompt TSV (salvo no código e copiado pelo botão)
+      const TSV_PROMPT = `Gere um arquivo TSV para importar no meu programa de flashcards (HTML) que espera o formato:
+
+hanzi<TAB>pinyin<TAB>português
+
+REGRAS OBRIGATÓRIAS:
+1) Responda SOMENTE com o conteúdo TSV puro (sem explicações, sem markdown, sem títulos).
+2) Use TAB real entre as colunas (caractere \\t). Uma linha por cartão.
+3) Não use aspas. Não use vírgulas como separador. Não use colunas extras.
+4) Não deixe linhas em branco.
+5) Pinyin consistente com marca de tom (ex.: Nǐ hǎo). Se não conseguir, use números (ex.: Ni3 hao3) — escolha UM padrão e mantenha.
+6) Português (pt-BR), tradução curta e clara.
+7) Evite duplicatas (não repetir a mesma combinação hanzi+pinyin+português).
+8) Crie exatamente 60 linhas.
+
+CONTEÚDO:
+- 45 linhas com palavras/expressões relacionadas ao tema.
+- 15 linhas com frases curtas (até ~12 caracteres em chinês) relacionadas ao tema.
+- Mesmo com tema, inclua alguns conectores e perguntas comuns (ex.: “porque”, “porém”, “se… então…”, “onde?”, “quanto custa?”).
+
+TEMA (substitua o texto entre colchetes):
+[TEMA: restaurante]
+NÍVEL (opcional):
+[NÍVEL: iniciante / HSK1-2]
+FOCO (opcional):
+[FOCO: mais frases / mais vocabulário / balanceado]
+
+Agora gere o TSV seguindo as regras.`.trim();
 
       const el = (id) => document.getElementById(id);
 
@@ -312,6 +447,7 @@
       const shuffleBtn = el("shuffle");
       const exportBtn = el("export-btn");
       const resetBtn = el("reset-btn");
+      const copyPromptBtn = el("copy-prompt");
 
       let deck = [];
       let currentIndex = 0;
@@ -323,7 +459,10 @@
       }
 
       function clampIndex() {
-        if (deck.length === 0) { currentIndex = 0; return; }
+        if (deck.length === 0) {
+          currentIndex = 0;
+          return;
+        }
         currentIndex = ((currentIndex % deck.length) + deck.length) % deck.length;
       }
 
@@ -485,7 +624,7 @@
 
       function parseTSV(text) {
         const normalized = String(text || "")
-          .replace(/^\uFEFF/, "")   // BOM
+          .replace(/^\uFEFF/, "") // BOM
           .replace(/\r\n/g, "\n")
           .replace(/\r/g, "\n");
 
@@ -542,6 +681,26 @@
         setStatus("Banco resetado para o padrão.", "ok");
       }
 
+      async function copyToClipboard(text) {
+        // Método moderno (https/localhost)
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+
+        // Fallback (file:// ou contexto não-seguro)
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-9999px";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+
       // --- events ---
       prevBtn.addEventListener("click", () => {
         if (deck.length === 0) return;
@@ -586,6 +745,16 @@
         const ok = confirm("Tem certeza? Isso vai apagar seus cartões e voltar ao padrão.");
         if (!ok) return;
         resetToDefault();
+      });
+
+      copyPromptBtn.addEventListener("click", async () => {
+        setStatus("");
+        try {
+          await copyToClipboard(TSV_PROMPT);
+          setStatus("Prompt copiado! Cole no ChatGPT, ajuste o [TEMA: ...] e peça o TSV.", "ok");
+        } catch {
+          setStatus("Não consegui copiar automaticamente. Tente abrir via localhost ou HTTPS.", "err");
+        }
       });
 
       manualForm.addEventListener("submit", (event) => {
@@ -684,8 +853,12 @@
 
       // teclado: ← → troca / espaço ou Enter vira
       document.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowLeft") { prevBtn.click(); }
-        if (e.key === "ArrowRight") { nextBtn.click(); }
+        if (e.key === "ArrowLeft") {
+          prevBtn.click();
+        }
+        if (e.key === "ArrowRight") {
+          nextBtn.click();
+        }
         if (e.key === " " || e.key === "Enter") {
           // evita scroll quando espaço
           if (document.activeElement === flashcard || document.activeElement === flipBtn) {
