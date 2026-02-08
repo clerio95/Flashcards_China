@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flashcards de Chinês</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        --bg: #f5f6fb;
+        --card: #ffffff;
+        --text: #1c1d26;
+        --muted: #667085;
+        --accent: #3f52ff;
+        --accent-light: #eef0ff;
+        --border: #e1e4ef;
+        --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      header {
+        padding: 32px 20px 16px;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px 20px 48px;
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      h2 {
+        margin-top: 0;
+        font-size: 20px;
+      }
+
+      .flashcard {
+        background: var(--accent-light);
+        border-radius: 20px;
+        padding: 32px 20px;
+        text-align: center;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+        border: 1px solid transparent;
+      }
+
+      .flashcard strong {
+        font-size: 32px;
+      }
+
+      .flashcard span {
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 16px;
+      }
+
+      button {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        background: var(--accent);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      button.secondary {
+        background: #e4e7f5;
+        color: #2b2f46;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        font-size: 14px;
+      }
+
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      .file-box {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border: 1px dashed var(--border);
+        padding: 14px;
+        border-radius: 12px;
+        background: #fafbff;
+      }
+
+      .list {
+        max-height: 320px;
+        overflow-y: auto;
+        display: grid;
+        gap: 10px;
+      }
+
+      .list-item {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: grid;
+        gap: 4px;
+      }
+
+      .list-item span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: var(--accent-light);
+        color: var(--accent);
+      }
+
+      footer {
+        text-align: center;
+        color: var(--muted);
+        padding: 24px 20px 40px;
+      }
+
+      @media (max-width: 720px) {
+        .flashcard strong {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Rotina de Flashcards de Mandarim</h1>
+      <p>Estude diariamente com cartões simples, consistentes e offline.</p>
+    </header>
+
+    <main>
+      <section>
+        <h2>Estudo rápido</h2>
+        <div class="flashcard" id="flashcard">
+          <strong id="card-hanzi">你好</strong>
+          <span id="card-pinyin">Nǐ hǎo</span>
+          <span id="card-pt">Olá</span>
+        </div>
+        <div class="controls">
+          <button id="prev-card" class="secondary">Anterior</button>
+          <button id="flip-card">Mostrar tradução</button>
+          <button id="next-card">Próximo</button>
+        </div>
+        <div class="controls">
+          <button id="shuffle" class="secondary">Embaralhar</button>
+          <span class="badge" id="card-count">0 cartões</span>
+        </div>
+      </section>
+
+      <section>
+        <h2>Adicionar flashcard manual</h2>
+        <form id="manual-form">
+          <div>
+            <label for="hanzi">Chinês (hanzi)</label>
+            <input type="text" id="hanzi" required />
+          </div>
+          <div>
+            <label for="pinyin">Pinyin</label>
+            <input type="text" id="pinyin" required />
+          </div>
+          <div>
+            <label for="pt">Tradução (PT)</label>
+            <input type="text" id="pt" required />
+          </div>
+          <button type="submit">Salvar no banco</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Importar arquivo .tsv</h2>
+        <div class="file-box">
+          <p>
+            Formato esperado: <strong>hanzi</strong> TAB <strong>pinyin</strong> TAB
+            <strong>português</strong>. Cada linha é um flashcard.
+          </p>
+          <input type="file" id="tsv-file" accept=".tsv" />
+          <button id="import-btn" class="secondary">Importar para o banco</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Banco de dados local</h2>
+        <p>
+          Seus dados ficam salvos neste navegador. Você pode estudar offline e continuar do
+          mesmo ponto.
+        </p>
+        <div class="list" id="card-list"></div>
+      </section>
+    </main>
+
+    <footer>Feito para estudo contínuo de chinês mandarim.</footer>
+
+    <script>
+      const STORAGE_KEY = "flashcards_mandarin_v1";
+      const DEFAULT_CARDS = [
+        {
+          hanzi: "当然",
+          pinyin: "Dāngrán",
+          pt: "Claro / naturalmente",
+        },
+        {
+          hanzi: "例如",
+          pinyin: "Lìrú",
+          pt: "Por exemplo",
+        },
+        {
+          hanzi: "已经",
+          pinyin: "Yǐjīng",
+          pt: "Já / já aconteceu",
+        },
+        {
+          hanzi: "可能",
+          pinyin: "Kěnéng",
+          pt: "Talvez / possível",
+        },
+        {
+          hanzi: "不过",
+          pinyin: "Bùguò",
+          pt: "Porém / no entanto",
+        },
+        {
+          hanzi: "因为...所以...",
+          pinyin: "Yīnwèi... suǒyǐ...",
+          pt: "Porque... então...",
+        },
+        {
+          hanzi: "坚持",
+          pinyin: "Jiānchí",
+          pt: "Persistir",
+        },
+        {
+          hanzi: "提高",
+          pinyin: "Tígāo",
+          pt: "Melhorar / elevar",
+        },
+        {
+          hanzi: "安排",
+          pinyin: "Ānpái",
+          pt: "Organizar / agendar",
+        },
+        {
+          hanzi: "无论",
+          pinyin: "Wúlùn",
+          pt: "Não importa / independentemente de",
+        },
+        {
+          hanzi: "我最近一直在学习中文。",
+          pinyin: "Wǒ zuìjìn yìzhí zài xuéxí Zhōngwén.",
+          pt: "Ultimamente tenho estudado chinês continuamente.",
+        },
+        {
+          hanzi: "如果你有时间，我们可以一起练习。",
+          pinyin: "Rúguǒ nǐ yǒu shíjiān, wǒmen kěyǐ yìqǐ liànxí.",
+          pt: "Se você tiver tempo, podemos praticar juntos.",
+        },
+        {
+          hanzi: "我想提高听力和口语。",
+          pinyin: "Wǒ xiǎng tígāo tīnglì hé kǒuyǔ.",
+          pt: "Quero melhorar a escuta e a fala.",
+        },
+        {
+          hanzi: "今天的课程很有帮助。",
+          pinyin: "Jīntiān de kèchéng hěn yǒu bāngzhù.",
+          pt: "A aula de hoje foi muito útil.",
+        },
+      ];
+
+      const flashcard = document.getElementById("flashcard");
+      const cardHanzi = document.getElementById("card-hanzi");
+      const cardPinyin = document.getElementById("card-pinyin");
+      const cardPt = document.getElementById("card-pt");
+      const cardCount = document.getElementById("card-count");
+      const listContainer = document.getElementById("card-list");
+      const manualForm = document.getElementById("manual-form");
+      const fileInput = document.getElementById("tsv-file");
+      const importBtn = document.getElementById("import-btn");
+
+      let deck = [];
+      let currentIndex = 0;
+      let showTranslation = true;
+
+      function saveDeck() {
+        const payload = {
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          cards: deck,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      }
+
+      function loadDeck() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          deck = [...DEFAULT_CARDS];
+          saveDeck();
+          return;
+        }
+        const data = JSON.parse(raw);
+        if (!data || data.version !== 1 || !Array.isArray(data.cards)) {
+          deck = [...DEFAULT_CARDS];
+          saveDeck();
+          return;
+        }
+        deck = data.cards;
+      }
+
+      function updateCardView() {
+        if (deck.length === 0) {
+          cardHanzi.textContent = "Sem cartões";
+          cardPinyin.textContent = "";
+          cardPt.textContent = "Adicione novos cartões para estudar";
+          return;
+        }
+        const card = deck[currentIndex];
+        cardHanzi.textContent = card.hanzi;
+        cardPinyin.textContent = card.pinyin;
+        cardPt.textContent = showTranslation ? card.pt : "••••••";
+      }
+
+      function updateList() {
+        listContainer.innerHTML = "";
+        deck.forEach((card) => {
+          const item = document.createElement("div");
+          item.className = "list-item";
+          item.innerHTML = `
+            <strong>${card.hanzi}</strong>
+            <span>${card.pinyin}</span>
+            <span>${card.pt}</span>
+          `;
+          listContainer.appendChild(item);
+        });
+        cardCount.textContent = `${deck.length} cartões`;
+      }
+
+      function addCard(card) {
+        deck.push(card);
+        currentIndex = deck.length - 1;
+        saveDeck();
+        updateCardView();
+        updateList();
+      }
+
+      function parseTSV(text) {
+        const lines = text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+        const cards = [];
+        lines.forEach((line) => {
+          const [hanzi, pinyin, pt] = line.split("\t");
+          if (hanzi && pinyin && pt) {
+            cards.push({
+              hanzi: hanzi.trim(),
+              pinyin: pinyin.trim(),
+              pt: pt.trim(),
+            });
+          }
+        });
+        return cards;
+      }
+
+      document.getElementById("prev-card").addEventListener("click", () => {
+        if (deck.length === 0) return;
+        currentIndex = (currentIndex - 1 + deck.length) % deck.length;
+        updateCardView();
+      });
+
+      document.getElementById("next-card").addEventListener("click", () => {
+        if (deck.length === 0) return;
+        currentIndex = (currentIndex + 1) % deck.length;
+        updateCardView();
+      });
+
+      document.getElementById("flip-card").addEventListener("click", () => {
+        showTranslation = !showTranslation;
+        updateCardView();
+      });
+
+      document.getElementById("shuffle").addEventListener("click", () => {
+        deck.sort(() => Math.random() - 0.5);
+        currentIndex = 0;
+        saveDeck();
+        updateCardView();
+        updateList();
+      });
+
+      manualForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const card = {
+          hanzi: document.getElementById("hanzi").value.trim(),
+          pinyin: document.getElementById("pinyin").value.trim(),
+          pt: document.getElementById("pt").value.trim(),
+        };
+        if (!card.hanzi || !card.pinyin || !card.pt) {
+          return;
+        }
+        addCard(card);
+        manualForm.reset();
+      });
+
+      importBtn.addEventListener("click", async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const text = await file.text();
+        const cards = parseTSV(text);
+        if (cards.length === 0) return;
+        cards.forEach((card) => deck.push(card));
+        currentIndex = deck.length - 1;
+        saveDeck();
+        updateCardView();
+        updateList();
+        fileInput.value = "";
+      });
+
+      loadDeck();
+      updateCardView();
+      updateList();
+    </script>
+  </body>
+</html>
