@@ -3,21 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Flashcards de Chinês (SRS + Áudio + Toggle Pinyin)</title>
+    <title>学中文 • Flashcards Pro</title>
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@300;500;700;800&family=Noto+Serif+SC:wght@600;700&display=swap");
+
       :root {
-        color-scheme: light;
-        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-        --bg: #f5f6fb;
-        --card: #ffffff;
-        --text: #1c1d26;
-        --muted: #667085;
-        --accent: #3f52ff;
-        --accent-light: #eef0ff;
-        --border: #e1e4ef;
-        --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-        --danger: #d92d20;
-        --success: #12b76a;
+        --bg-cream: #fff2df;
+        --bg-peach: #ffd6b0;
+        --bg-coral: #ff9e7a;
+        --ink: #2d1a12;
+        --muted: #6f4d3f;
+        --front-a: #d63c2e;
+        --front-b: #ea5a3c;
+        --front-c: #f59337;
+        --back-a: #1f4fa8;
+        --back-b: #2a7ac0;
+        --back-c: #2db8c9;
+        --panel: rgba(255, 255, 255, 0.58);
+        --panel-border: rgba(255, 255, 255, 0.38);
+        --line: rgba(111, 77, 63, 0.2);
+        --ok: #0f7a3f;
+        --danger: #a6291f;
       }
 
       * {
@@ -26,1454 +32,1518 @@
 
       body {
         margin: 0;
-        background: var(--bg);
-        color: var(--text);
+        min-height: 100vh;
+        font-family: "Lexend", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.74) 0, rgba(255, 255, 255, 0) 31%),
+          radial-gradient(circle at 84% 0%, rgba(255, 201, 141, 0.75) 0, rgba(255, 201, 141, 0) 37%),
+          linear-gradient(140deg, var(--bg-cream), var(--bg-peach) 50%, var(--bg-coral));
       }
 
-      header {
-        padding: 28px 20px 12px;
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+        opacity: 0.45;
+      }
+
+      .page {
+        width: min(1120px, calc(100% - 2rem));
+        margin: 1.4rem auto 2rem;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 1rem;
+      }
+
+      .panel {
+        border: 1px solid var(--panel-border);
+        border-radius: 26px;
+        background: var(--panel);
+        backdrop-filter: blur(4px);
+        box-shadow: 0 20px 52px rgba(58, 25, 11, 0.18);
+      }
+
+      .study-panel {
+        padding: 1.25rem;
+      }
+
+      .side-panel {
+        padding: 1rem;
+        display: grid;
+        gap: 0.85rem;
+        align-content: start;
+      }
+
+      .title-wrap {
         text-align: center;
+        margin-bottom: 0.85rem;
+        animation: rise 0.65s ease-out both;
       }
 
-      header h1 {
-        margin: 0 0 8px;
-        font-size: 26px;
-      }
-
-      header p {
+      h1 {
         margin: 0;
+        font-family: "Noto Serif SC", serif;
+        font-size: clamp(2rem, 4.8vw, 3.5rem);
+        letter-spacing: 0.05em;
+        color: #9b2418;
+      }
+
+      .subtitle {
+        margin: 0.4rem 0 0;
         color: var(--muted);
       }
 
-      main {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 18px 20px 44px;
-        display: grid;
-        gap: 18px;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      }
-
-      section {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px;
-        box-shadow: var(--shadow);
-      }
-
-      h2 {
-        margin-top: 0;
-        font-size: 18px;
-      }
-
-      .top-row {
+      .chip-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-bottom: 0.9rem;
       }
 
-      .chipbar {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
+      .chip {
+        padding: 0.34rem 0.62rem;
         border-radius: 999px;
-        font-size: 12px;
-        background: var(--accent-light);
-        color: var(--accent);
-        border: 1px solid rgba(63, 82, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        font-size: 0.74rem;
+        letter-spacing: 0.03em;
+        background: rgba(255, 255, 255, 0.52);
+        color: #70442f;
       }
 
-      .badge.neutral {
-        background: #f2f4f7;
-        color: #344054;
-        border-color: #eaecf0;
+      .card-shell {
+        perspective: 1200px;
+        margin-top: 0.8rem;
       }
 
-      .badge.warn {
-        background: #fff6ed;
-        color: #b54708;
-        border: 1px solid #ffe6c7;
+      .card {
+        width: 100%;
+        min-height: 404px;
+        position: relative;
+        border-radius: 28px;
+        cursor: pointer;
+        transform-style: preserve-3d;
+        transition: transform 560ms cubic-bezier(0.22, 0.86, 0.3, 1.01);
+        box-shadow: 0 16px 34px rgba(78, 28, 12, 0.24);
+        outline: none;
       }
 
-      .flashcard {
-        background: var(--accent-light);
-        border-radius: 20px;
-        padding: 28px 18px;
-        text-align: center;
-        min-height: 220px;
+      .card.is-flipped {
+        transform: rotateY(180deg);
+      }
+
+      .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 28px;
+        padding: 1.55rem;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 10px;
-        border: 1px solid transparent;
-        outline: none;
-        user-select: none;
+        align-items: center;
+        text-align: center;
+        border: 2px solid rgba(255, 255, 255, 0.3);
       }
 
-      .flashcard:focus {
-        border-color: rgba(63, 82, 255, 0.35);
-        box-shadow: 0 0 0 4px rgba(63, 82, 255, 0.15);
+      .face-front {
+        background: linear-gradient(138deg, var(--front-a), var(--front-b), var(--front-c));
+        color: #fff;
       }
 
-      .flashcard strong {
-        font-size: 30px;
-        letter-spacing: 0.2px;
+      .face-back {
+        transform: rotateY(180deg);
+        background: linear-gradient(138deg, var(--back-a), var(--back-b), var(--back-c));
+        color: #fff;
       }
 
-      .flashcard span {
-        color: var(--muted);
-        font-size: 15px;
-        line-height: 1.25;
+      .face-label {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        font-size: 0.78rem;
+        font-weight: 700;
+        opacity: 0.9;
       }
 
-      .flashcard .hint {
-        font-size: 13px;
-        color: rgba(102, 112, 133, 0.9);
+      .hanzi {
+        margin: 1.1rem 0 0;
+        font-family: "Noto Serif SC", serif;
+        font-size: clamp(3.1rem, 10vw, 5.4rem);
+        line-height: 1.1;
+        text-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+      }
+
+      .pinyin {
+        margin: 0.9rem 0 0;
+        font-size: clamp(1rem, 2.9vw, 1.62rem);
+        font-weight: 500;
+      }
+
+      .english {
+        margin: 1.15rem 0 0;
+        font-size: clamp(1.9rem, 6vw, 3rem);
+        line-height: 1.18;
+        font-weight: 700;
+      }
+
+      .back-foot {
+        margin-top: 1.15rem;
+        width: 100%;
+        border-top: 1px solid rgba(255, 255, 255, 0.34);
+        padding-top: 0.95rem;
+      }
+
+      .back-foot .pinyin {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .back-foot .hanzi {
+        margin: 0.35rem 0 0;
+        font-size: clamp(1.7rem, 5.6vw, 2.2rem);
+      }
+
+      .front-actions {
+        margin-top: 1.1rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .icon-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 999px;
+        border: none;
+        background: rgba(255, 255, 255, 0.24);
+        color: #fff;
+        font-size: 1.35rem;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .icon-btn:hover {
+        background: rgba(255, 255, 255, 0.34);
+      }
+
+      .icon-btn:active {
+        transform: scale(0.96);
+      }
+
+      .flip-hint {
+        text-align: center;
+        margin: 0.7rem 0 0;
+        color: rgba(45, 26, 18, 0.72);
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+      }
+
+      .progress-wrap {
+        margin-top: 1rem;
+      }
+
+      .progress-text {
+        margin: 0;
+        text-align: center;
+        font-size: 1rem;
+        color: #5e3025;
+      }
+
+      .progress-text strong {
+        color: #b03021;
+      }
+
+      .bar-track {
+        width: 100%;
+        height: 12px;
+        margin-top: 0.6rem;
+        border-radius: 999px;
+        background: rgba(123, 87, 71, 0.2);
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #d74333, #ea6e38, #f29e2e);
+        transition: width 300ms ease;
+      }
+
+      .row {
+        display: grid;
+        gap: 0.55rem;
       }
 
       .controls {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 12px;
+        margin-top: 0.95rem;
+        display: grid;
+        grid-template-columns: 56px 1fr 56px;
+        gap: 0.55rem;
+      }
+
+      .review-grid {
+        margin-top: 0.6rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.45rem;
       }
 
       button {
-        border: none;
-        padding: 10px 14px;
-        border-radius: 10px;
-        background: var(--accent);
-        color: white;
-        font-weight: 600;
+        border: 0;
+        border-radius: 12px;
+        font-family: inherit;
+      }
+
+      .btn {
+        min-height: 45px;
         cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        transition: transform 0.15s ease, background 0.15s ease;
       }
 
-      button.secondary {
-        background: #e4e7f5;
-        color: #2b2f46;
+      .btn:active {
+        transform: translateY(1px) scale(0.99);
       }
 
-      button.danger {
-        background: #fee4e2;
-        color: var(--danger);
+      .btn-primary {
+        background: #c4362a;
+        color: #fff;
+        box-shadow: 0 8px 16px rgba(126, 34, 18, 0.2);
       }
 
-      button.success {
-        background: #ecfdf3;
-        color: var(--success);
+      .btn-primary:hover {
+        background: #a92e24;
       }
 
-      button:active {
-        transform: scale(0.98);
+      .btn-soft {
+        background: rgba(255, 255, 255, 0.68);
+        color: #623425;
+        border: 1px solid rgba(115, 71, 53, 0.14);
       }
 
-      .compact {
-        padding: 9px 12px;
+      .btn-soft:hover {
+        background: rgba(255, 255, 255, 0.88);
       }
 
-      .srs-row {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 10px;
+      .btn-ok {
+        background: #e4f6ea;
+        color: #1d6b40;
       }
 
-      .srs-row button {
-        min-width: 110px;
+      .btn-hard {
+        background: #fff5e1;
+        color: #87520e;
       }
 
-      form {
+      .btn-again {
+        background: #ffe5e2;
+        color: #9f2d23;
+      }
+
+      .toolbar {
+        margin-top: 0.6rem;
         display: grid;
-        gap: 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
+      }
+
+      .stack {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .card-section {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.45);
+      }
+
+      .section-title {
+        margin: 0 0 0.52rem;
+        font-size: 0.93rem;
+        letter-spacing: 0.03em;
+        color: #623425;
+      }
+
+      .field {
+        display: grid;
+        gap: 0.25rem;
       }
 
       label {
-        font-size: 14px;
-        color: var(--muted);
+        font-size: 0.8rem;
+        color: #6d4c3d;
       }
 
-      input[type="text"],
+      input,
+      select,
       textarea {
         width: 100%;
-        padding: 10px 12px;
+        border: 1px solid rgba(105, 74, 59, 0.2);
         border-radius: 10px;
-        border: 1px solid var(--border);
-        font-size: 14px;
-        background: #fff;
+        background: rgba(255, 255, 255, 0.88);
+        padding: 0.52rem 0.65rem;
+        font-size: 0.9rem;
+        font-family: inherit;
       }
 
-      textarea {
-        min-height: 80px;
-        resize: vertical;
-      }
-
-      .file-box {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        border: 1px dashed var(--border);
-        padding: 14px;
-        border-radius: 12px;
-        background: #fafbff;
+      .inline {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
       }
 
       .list {
-        max-height: 320px;
-        overflow-y: auto;
+        max-height: 280px;
+        overflow: auto;
         display: grid;
-        gap: 10px;
+        gap: 0.42rem;
+        padding-right: 0.15rem;
       }
 
       .list-item {
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
+        border: 1px solid rgba(110, 73, 56, 0.18);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.74);
+        padding: 0.55rem;
         display: grid;
-        gap: 6px;
+        gap: 0.32rem;
       }
 
-      .list-item span {
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .list-item small {
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      .list-item-actions {
+      .list-top {
         display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-      }
-
-      .status {
-        margin-top: 10px;
-        text-align: center;
-        color: var(--muted);
-        font-size: 13px;
-        min-height: 18px;
-      }
-
-      .status.ok {
-        color: var(--success);
-      }
-      .status.err {
-        color: var(--danger);
-      }
-
-      footer {
-        text-align: center;
-        color: var(--muted);
-        padding: 22px 20px 36px;
-      }
-
-      /* Tooltip */
-      .tooltip {
-        position: relative;
-        display: inline-flex;
-        justify-content: center;
+        justify-content: space-between;
+        gap: 0.45rem;
         align-items: center;
       }
 
-      .tooltip:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: calc(100% + 10px);
-        left: 50%;
-        transform: translateX(-50%);
-        max-width: 320px;
-        white-space: normal;
-        background: #111827;
-        color: #fff;
-        padding: 10px 12px;
-        border-radius: 10px;
-        font-size: 12px;
-        line-height: 1.35;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-        z-index: 50;
+      .list-item strong {
+        font-family: "Noto Serif SC", serif;
+        font-size: 1.12rem;
       }
 
-      .tooltip:hover::before {
-        content: "";
-        position: absolute;
-        bottom: calc(100% + 4px);
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 6px;
-        border-style: solid;
-        border-color: #111827 transparent transparent transparent;
-        z-index: 50;
+      .muted {
+        color: #6f4d3f;
+        font-size: 0.78rem;
       }
 
-      .hide {
-        display: none !important;
+      .item-actions {
+        display: flex;
+        gap: 0.35rem;
       }
 
-      @media (max-width: 720px) {
-        header h1 {
-          font-size: 24px;
+      .tiny {
+        min-height: 28px;
+        padding: 0 0.5rem;
+        font-size: 0.74rem;
+      }
+
+      .notice {
+        min-height: 20px;
+        font-size: 0.8rem;
+        color: #653a2a;
+      }
+
+      .notice.ok {
+        color: var(--ok);
+      }
+
+      .notice.error {
+        color: var(--danger);
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 12, 7, 0.35);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        padding: 1rem;
+      }
+
+      .modal.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(560px, 100%);
+        background: #fff9f3;
+        border: 1px solid #ffd9b8;
+        border-radius: 18px;
+        padding: 1rem;
+      }
+
+      .shortcut-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.35rem 0.8rem;
+      }
+
+      kbd {
+        border: 1px solid #d2b49b;
+        border-bottom-width: 2px;
+        border-radius: 6px;
+        padding: 0.04rem 0.38rem;
+        background: #fff;
+        font-size: 0.78rem;
+      }
+
+      .empty {
+        text-align: center;
+        color: #775546;
+        font-size: 0.84rem;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
         }
-        .flashcard strong {
-          font-size: 24px;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .srs-row button {
-          min-width: 0;
-          flex: 1 1 130px;
+      }
+
+      @media (max-width: 980px) {
+        .page {
+          grid-template-columns: 1fr;
+          width: min(920px, calc(100% - 1rem));
+          margin-top: 0.7rem;
+        }
+
+        .study-panel,
+        .side-panel {
+          padding: 0.9rem;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .card {
+          min-height: 350px;
+        }
+
+        .toolbar {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .inline {
+          grid-template-columns: 1fr;
+        }
+
+        .shortcut-grid {
+          grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
 
   <body>
-    <header>
-      <h1>Rotina de Flashcards de Mandarim</h1>
-      <p>SRS + áudio (TTS) + opção de esconder pinyin — tudo offline.</p>
-    </header>
+    <main class="page">
+      <section class="panel study-panel" aria-label="Estudo">
+        <header class="title-wrap">
+          <h1>学中文</h1>
+          <p class="subtitle">Learn Chinese • 学习汉语</p>
+        </header>
 
-    <main>
-      <section>
-        <div class="top-row">
-          <div class="chipbar">
-            <span class="badge" id="card-count">0 cartões</span>
-            <span class="badge neutral" id="due-count">0 vencidos</span>
-            <span class="badge warn" id="next-due" title="Quando aparece o próximo card vencido">próximo: —</span>
+        <div class="chip-row" id="stats-row"></div>
+
+        <section class="card-shell" aria-label="Flashcard principal">
+          <article class="card" id="flashcard" tabindex="0" role="button" aria-label="Clique para virar o cartão">
+            <div class="face face-front">
+              <p class="face-label">汉字</p>
+              <p class="hanzi" id="front-hanzi"></p>
+              <p class="pinyin" id="front-pinyin"></p>
+              <div class="front-actions">
+                <button class="icon-btn" id="speak-btn" type="button" title="Ouvir pronúncia" aria-label="Ouvir pronúncia">🔊</button>
+                <button class="icon-btn" id="pin-btn" type="button" title="Fixar cartão no topo" aria-label="Fixar cartão">📌</button>
+              </div>
+            </div>
+
+            <div class="face face-back">
+              <p class="face-label">English</p>
+              <p class="english" id="back-english"></p>
+              <div class="back-foot">
+                <p class="pinyin" id="back-pinyin"></p>
+                <p class="hanzi" id="back-hanzi"></p>
+              </div>
+            </div>
+          </article>
+          <p class="flip-hint">点击翻转 • Click to flip • Enter/Space</p>
+        </section>
+
+        <section class="progress-wrap" aria-label="Progresso">
+          <p class="progress-text" id="progress-text"></p>
+          <div class="bar-track" aria-hidden="true">
+            <div class="bar-fill" id="progress-fill"></div>
+          </div>
+        </section>
+
+        <section class="row" aria-label="Navegação e revisão">
+          <div class="controls">
+            <button class="btn btn-primary" id="prev-btn" type="button" aria-label="Cartão anterior">←</button>
+            <button class="btn btn-primary" id="flip-btn" type="button">Virar</button>
+            <button class="btn btn-primary" id="next-btn" type="button" aria-label="Próximo cartão">→</button>
           </div>
 
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
-            <button id="toggle-pinyin" class="secondary compact" type="button" title="Mostrar/ocultar pinyin (atalho: P)">
-              Ocultar pinyin
-            </button>
-            <button id="speak" class="secondary compact" type="button" title="Ouvir (TTS) (atalho: A)">
-              🔊 Ouvir
-            </button>
+          <div class="review-grid">
+            <button class="btn btn-again" id="again-btn" type="button">Again</button>
+            <button class="btn btn-hard" id="hard-btn" type="button">Hard</button>
+            <button class="btn btn-ok" id="good-btn" type="button">Good</button>
           </div>
-        </div>
 
-        <h2 style="margin-top: 0">Estudo rápido</h2>
-
-        <div
-          class="flashcard"
-          id="flashcard"
-          tabindex="0"
-          role="button"
-          aria-label="Flashcard (clique para mostrar/ocultar tradução)"
-        >
-          <strong id="card-hanzi">你好</strong>
-          <span id="card-pinyin">Nǐ hǎo</span>
-          <span id="card-pt">••••••</span>
-          <span class="hint" id="card-hint">Clique no cartão para revelar a tradução.</span>
-        </div>
-
-        <div class="controls" aria-label="Controles de navegação">
-          <button id="prev-card" class="secondary" type="button">Anterior</button>
-          <button id="flip-card" type="button">Mostrar tradução</button>
-          <button id="next-card" type="button">Próximo</button>
-        </div>
-
-        <div class="srs-row" aria-label="Avaliação SRS">
-          <button id="rate-again" class="danger" type="button" title="Errei (volta logo)">Errei</button>
-          <button id="rate-hard" class="secondary" type="button" title="Aparece mais cedo">Difícil</button>
-          <button id="rate-good" class="success" type="button" title="Ok (intervalo normal)">Ok</button>
-          <button id="rate-easy" class="secondary" type="button" title="Fácil (intervalo maior)">Fácil</button>
-        </div>
-
-        <div class="controls" aria-label="Ferramentas">
-          <button id="shuffle" class="secondary" type="button">Embaralhar</button>
-          <button id="export-btn" class="secondary" type="button">Exportar .tsv</button>
-
-          <button
-            id="copy-prompt"
-            class="secondary tooltip"
-            type="button"
-            title="Copia um prompt pronto para você colar no ChatGPT e receber um TSV compatível."
-            data-tooltip="Clique para copiar o prompt completo. Depois cole no ChatGPT, troque o [TEMA: ...] e peça as 60 linhas. O resultado você salva como .tsv e importa aqui."
-          >
-            Copiar prompt TSV
-          </button>
-
-          <button id="reset-btn" class="danger" type="button">Resetar para padrão</button>
-        </div>
-
-        <div class="status" id="status" aria-live="polite"></div>
+          <div class="toolbar">
+            <button class="btn btn-soft" id="shuffle-btn" type="button">Embaralhar</button>
+            <button class="btn btn-soft" id="toggle-pinyin-btn" type="button">Ocultar pinyin</button>
+            <button class="btn btn-soft" id="reset-progress-btn" type="button">Reset progresso</button>
+            <button class="btn btn-soft" id="help-btn" type="button">Atalhos</button>
+          </div>
+        </section>
       </section>
 
-      <section>
-        <h2>Adicionar flashcard manual</h2>
-        <form id="manual-form">
-          <div>
-            <label for="hanzi">Chinês (hanzi)</label>
-            <input type="text" id="hanzi" required autocomplete="off" />
-          </div>
-          <div>
-            <label for="pinyin">Pinyin</label>
-            <input type="text" id="pinyin" required autocomplete="off" />
-          </div>
-          <div>
-            <label for="pt">Tradução (PT)</label>
-            <input type="text" id="pt" required autocomplete="off" />
-          </div>
-          <button type="submit">Salvar no banco</button>
-        </form>
-      </section>
+      <aside class="panel side-panel" aria-label="Ferramentas">
+        <section class="card-section">
+          <h2 class="section-title">Configuração</h2>
+          <div class="stack">
+            <div class="field">
+              <label for="study-mode">Modo de estudo</label>
+              <select id="study-mode">
+                <option value="smart">Smart (vencidos primeiro)</option>
+                <option value="sequential">Sequencial</option>
+                <option value="random">Aleatório</option>
+              </select>
+            </div>
 
-      <section>
-        <h2>Importar arquivo .tsv</h2>
-        <div class="file-box">
-          <p>
-            Formato esperado: <strong>hanzi</strong> TAB <strong>pinyin</strong> TAB
-            <strong>português</strong>. Cada linha é um flashcard.
-          </p>
-          <input
-            type="file"
-            id="tsv-file"
-            accept=".tsv,text/tab-separated-values,text/plain"
-          />
-          <button id="import-btn" class="secondary" type="button">Importar para o banco</button>
-        </div>
-      </section>
+            <div class="inline">
+              <div class="field">
+                <label for="voice-select">Voz</label>
+                <select id="voice-select">
+                  <option value="">Padrão do navegador</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="speech-rate">Velocidade TTS</label>
+                <input id="speech-rate" type="range" min="0.6" max="1.2" step="0.05" value="0.85" />
+              </div>
+            </div>
 
-      <section>
-        <div class="top-row">
-          <h2 style="margin: 0">Banco de dados local</h2>
-          <button id="toggle-db" class="secondary compact" type="button">
-            Mostrar banco
-          </button>
-        </div>
+            <div class="inline">
+              <button class="btn btn-soft" id="autospeak-btn" type="button">Auto speak: off</button>
+              <button class="btn btn-soft" id="due-filter-btn" type="button">Só vencidos: off</button>
+            </div>
+          </div>
+        </section>
 
-        <div id="db-panel" class="hide">
-          <p>
-            Seus dados ficam salvos neste navegador. Você pode estudar offline e continuar do
-            mesmo ponto.
-          </p>
-          <div class="list" id="card-list"></div>
-        </div>
-      </section>
+        <section class="card-section">
+          <h2 class="section-title">Adicionar cartão</h2>
+          <form id="add-form" class="stack" autocomplete="off">
+            <div class="field">
+              <label for="chinese-input">汉字</label>
+              <input id="chinese-input" type="text" required />
+            </div>
+            <div class="field">
+              <label for="pinyin-input">Pinyin</label>
+              <input id="pinyin-input" type="text" required />
+            </div>
+            <div class="field">
+              <label for="english-input">English</label>
+              <input id="english-input" type="text" required />
+            </div>
+            <button class="btn btn-primary" type="submit">Salvar cartão</button>
+          </form>
+        </section>
+
+        <section class="card-section">
+          <h2 class="section-title">Importar / Exportar</h2>
+          <div class="stack">
+            <div class="field">
+              <label for="tsv-input">TSV (汉字[TAB]pinyin[TAB]english)</label>
+              <textarea id="tsv-input" rows="4" placeholder="你好\tnǐ hǎo\tHello"></textarea>
+            </div>
+            <div class="toolbar" style="margin-top: 0">
+              <button class="btn btn-soft" id="import-tsv-btn" type="button">Importar TSV</button>
+              <button class="btn btn-soft" id="export-tsv-btn" type="button">Exportar TSV</button>
+              <button class="btn btn-soft" id="export-json-btn" type="button">Exportar JSON</button>
+              <button class="btn btn-soft" id="clear-input-btn" type="button">Limpar</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card-section">
+          <h2 class="section-title">Deck (local)</h2>
+          <div class="list" id="deck-list"></div>
+        </section>
+
+        <div class="notice" id="notice" aria-live="polite"></div>
+      </aside>
     </main>
 
-    <footer>Feito para estudo contínuo de chinês mandarim.</footer>
+    <div class="modal" id="help-modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="modal-card">
+        <h3 id="help-title" style="margin: 0 0 0.7rem">Atalhos de teclado</h3>
+        <div class="shortcut-grid">
+          <span><kbd>Space</kbd> ou <kbd>Enter</kbd> vira o cartão</span>
+          <span><kbd>←</kbd> cartão anterior</span>
+          <span><kbd>→</kbd> próximo cartão</span>
+          <span><kbd>A</kbd> fala o chinês atual</span>
+          <span><kbd>G</kbd> Good</span>
+          <span><kbd>H</kbd> Hard</span>
+          <span><kbd>R</kbd> Again</span>
+          <span><kbd>P</kbd> mostrar/ocultar pinyin</span>
+          <span><kbd>S</kbd> embaralhar deck</span>
+          <span><kbd>?</kbd> abre/fecha ajuda</span>
+        </div>
+        <div style="margin-top: 0.9rem; text-align: right">
+          <button class="btn btn-primary" id="close-help-btn" type="button">Fechar</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       "use strict";
 
-      // =========================
-      // Storage / Defaults
-      // =========================
-      const STORAGE_KEY = "flashcards_mandarin_v4";
+      const STORAGE_KEY = "flashcards_china_pro_v1";
+      const DAY_MS = 24 * 60 * 60 * 1000;
 
       const DEFAULT_CARDS = [
-        { hanzi: "当然", pinyin: "Dāngrán", pt: "Claro / naturalmente" },
-        { hanzi: "例如", pinyin: "Lìrú", pt: "Por exemplo" },
-        { hanzi: "已经", pinyin: "Yǐjīng", pt: "Já / já aconteceu" },
-        { hanzi: "可能", pinyin: "Kěnéng", pt: "Talvez / possível" },
-        { hanzi: "不过", pinyin: "Bùguò", pt: "Porém / no entanto" },
-        { hanzi: "因为...所以...", pinyin: "Yīnwèi... suǒyǐ...", pt: "Porque... então..." },
-        { hanzi: "坚持", pinyin: "Jiānchí", pt: "Persistir" },
-        { hanzi: "提高", pinyin: "Tígāo", pt: "Melhorar / elevar" },
-        { hanzi: "安排", pinyin: "Ānpái", pt: "Organizar / agendar" },
-        { hanzi: "无论", pinyin: "Wúlùn", pt: "Não importa / independentemente de" },
-        {
-          hanzi: "我最近一直在学习中文。",
-          pinyin: "Wǒ zuìjìn yìzhí zài xuéxí Zhōngwén.",
-          pt: "Ultimamente tenho estudado chinês continuamente.",
-        },
-        {
-          hanzi: "如果你有时间，我们可以一起练习。",
-          pinyin: "Rúguǒ nǐ yǒu shíjiān, wǒmen kěyǐ yìqǐ liànxí.",
-          pt: "Se você tiver tempo, podemos praticar juntos.",
-        },
-        {
-          hanzi: "我想提高听力和口语。",
-          pinyin: "Wǒ xiǎng tígāo tīnglì hé kǒuyǔ.",
-          pt: "Quero melhorar a escuta e a fala.",
-        },
-        {
-          hanzi: "今天的课程很有帮助。",
-          pinyin: "Jīntiān de kèchéng hěn yǒu bāngzhù.",
-          pt: "A aula de hoje foi muito útil.",
-        },
+        ["你好", "nǐ hǎo", "Hello / Hi"],
+        ["谢谢", "xièxie", "Thank you"],
+        ["对不起", "duìbùqǐ", "Sorry / Excuse me"],
+        ["请问", "qǐng wèn", "Excuse me (question)"],
+        ["没关系", "méi guānxi", "No problem"],
+        ["水", "shuǐ", "Water"],
+        ["朋友", "péngyou", "Friend"],
+        ["学习", "xuéxí", "To study / Learning"],
+        ["现在", "xiànzài", "Now"],
+        ["明天", "míngtiān", "Tomorrow"]
       ];
 
-      // Prompt TSV
-      const TSV_PROMPT = `Gere um arquivo TSV para importar no meu programa de flashcards (HTML) que espera o formato:
+      const state = {
+        cards: [],
+        currentId: "",
+        isFlipped: false,
+        showPinyin: true,
+        autoSpeak: false,
+        dueOnly: false,
+        mode: "smart",
+        pinnedCardId: "",
+        voiceURI: "",
+        speechRate: 0.85,
+        deckOrder: [],
+        sessionReviews: 0,
+        lastReviewedDay: ""
+      };
 
-hanzi<TAB>pinyin<TAB>português
-
-REGRAS OBRIGATÓRIAS:
-1) Responda SOMENTE com o conteúdo TSV puro (sem explicações, sem markdown, sem títulos).
-2) Use TAB real entre as colunas (caractere \\t). Uma linha por cartão.
-3) Não use aspas. Não use vírgulas como separador. Não use colunas extras.
-4) Não deixe linhas em branco.
-5) Pinyin consistente com marca de tom (ex.: Nǐ hǎo). Se não conseguir, use números (ex.: Ni3 hao3) — escolha UM padrão e mantenha.
-6) Português (pt-BR), tradução curta e clara.
-7) Evite duplicatas (não repetir a mesma combinação hanzi+pinyin+português).
-8) Crie exatamente 60 linhas.
-
-CONTEÚDO:
-- 45 linhas com palavras/expressões relacionadas ao tema.
-- 15 linhas com frases curtas (até ~12 caracteres em chinês) relacionadas ao tema.
-- Mesmo com tema, inclua alguns conectores e perguntas comuns (ex.: “porque”, “porém”, “se… então…”, “onde?”, “quanto custa?”).
-
-TEMA (substitua o texto entre colchetes):
-[TEMA: restaurante]
-NÍVEL (opcional):
-[NÍVEL: iniciante / HSK1-2]
-FOCO (opcional):
-[FOCO: mais frases / mais vocabulário / balanceado]
-
-Agora gere o TSV seguindo as regras.`.trim();
-
-      // =========================
-      // Helpers
-      // =========================
-      const el = (id) => document.getElementById(id);
-
-      function setStatus(message, type = "") {
-        statusEl.textContent = message || "";
-        statusEl.className = "status" + (type ? ` ${type}` : "");
-      }
-
-      function normalizeText(s) {
-        if (typeof s !== "string") return "";
-        return s.replace(/^\uFEFF/, "").trim();
-      }
-
-      function isValidCard(card) {
-        return (
-          card &&
-          typeof card.hanzi === "string" &&
-          typeof card.pinyin === "string" &&
-          typeof card.pt === "string" &&
-          normalizeText(card.hanzi).length > 0 &&
-          normalizeText(card.pinyin).length > 0 &&
-          normalizeText(card.pt).length > 0
-        );
-      }
-
-      function makeKey(card) {
-        return `${card.hanzi}||${card.pinyin}||${card.pt}`.toLowerCase();
-      }
+      const els = {
+        flashcard: document.getElementById("flashcard"),
+        frontHanzi: document.getElementById("front-hanzi"),
+        frontPinyin: document.getElementById("front-pinyin"),
+        backEnglish: document.getElementById("back-english"),
+        backPinyin: document.getElementById("back-pinyin"),
+        backHanzi: document.getElementById("back-hanzi"),
+        progressText: document.getElementById("progress-text"),
+        progressFill: document.getElementById("progress-fill"),
+        statsRow: document.getElementById("stats-row"),
+        notice: document.getElementById("notice"),
+        deckList: document.getElementById("deck-list"),
+        speechRate: document.getElementById("speech-rate"),
+        voiceSelect: document.getElementById("voice-select"),
+        modeSelect: document.getElementById("study-mode"),
+        tsvInput: document.getElementById("tsv-input"),
+        autospeakBtn: document.getElementById("autospeak-btn"),
+        dueFilterBtn: document.getElementById("due-filter-btn"),
+        togglePinyinBtn: document.getElementById("toggle-pinyin-btn"),
+        pinBtn: document.getElementById("pin-btn"),
+        helpModal: document.getElementById("help-modal")
+      };
 
       function nowMs() {
         return Date.now();
       }
 
-      function dayMs(days) {
-        return Math.round(days * 24 * 60 * 60 * 1000);
+      function todayKey() {
+        return new Date().toISOString().slice(0, 10);
       }
 
-      function formatDateTime(ms) {
-        try {
-          const d = new Date(ms);
-          return d.toLocaleString(undefined, {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        } catch {
-          return "—";
-        }
+      function uid() {
+        return "c_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
       }
 
-      // =========================
-      // SRS (SM-2-ish)
-      // =========================
-      function defaultSrs() {
+      function normalize(text) {
+        return String(text || "").trim();
+      }
+
+      function toCard(raw, idSeed) {
+        const chinese = normalize(raw[0]);
+        const pinyin = normalize(raw[1]);
+        const english = normalize(raw[2]);
         return {
-          ease: 2.5,
-          interval: 0, // days
-          reps: 0,
-          lapses: 0,
-          due: nowMs(),
+          id: idSeed || uid(),
+          chinese,
+          pinyin,
+          english,
+          box: 1,
+          nextDueAt: nowMs(),
+          createdAt: nowMs(),
+          lastReviewedAt: 0,
+          reviews: 0,
+          successes: 0
         };
       }
 
-      function ensureSrs(card) {
-        if (!card.srs || typeof card.srs !== "object") {
-          card.srs = defaultSrs();
-          return;
-        }
-        const s = card.srs;
-        if (typeof s.ease !== "number") s.ease = 2.5;
-        if (typeof s.interval !== "number") s.interval = 0;
-        if (!Number.isInteger(s.reps)) s.reps = 0;
-        if (!Number.isInteger(s.lapses)) s.lapses = 0;
-        if (typeof s.due !== "number") s.due = nowMs();
-      }
-
-      // quality: 0..5
-      function applySm2(card, quality) {
-        ensureSrs(card);
-        const s = card.srs;
-
-        quality = Math.max(0, Math.min(5, quality));
-
-        if (quality < 3) {
-          s.lapses += 1;
-          s.reps = 0;
-          s.interval = 0;
-          s.due = nowMs() + dayMs(0.02); // ~30 min
-          s.ease = Math.max(1.3, s.ease - 0.2);
-          return;
-        }
-
-        s.reps += 1;
-
-        const diff = 5 - quality;
-        s.ease = s.ease + (0.1 - diff * (0.08 + diff * 0.02));
-        if (s.ease < 1.3) s.ease = 1.3;
-
-        if (s.reps === 1) s.interval = 1;
-        else if (s.reps === 2) s.interval = 6;
-        else s.interval = Math.round(Math.max(1, s.interval * s.ease));
-
-        if (quality === 3) s.interval = Math.max(1, Math.round(s.interval * 0.75));
-        if (quality === 5) s.interval = Math.max(1, Math.round(s.interval * 1.15));
-
-        s.due = nowMs() + dayMs(s.interval);
-      }
-
-      // =========================
-      // DOM refs
-      // =========================
-      const cardCount = el("card-count");
-      const dueCount = el("due-count");
-      const nextDue = el("next-due");
-
-      const togglePinyinBtn = el("toggle-pinyin");
-      const speakBtn = el("speak");
-
-      const flashcard = el("flashcard");
-      const cardHanzi = el("card-hanzi");
-      const cardPinyin = el("card-pinyin");
-      const cardPt = el("card-pt");
-      const cardHint = el("card-hint");
-
-      const prevBtn = el("prev-card");
-      const nextBtn = el("next-card");
-      const flipBtn = el("flip-card");
-
-      const rateAgainBtn = el("rate-again");
-      const rateHardBtn = el("rate-hard");
-      const rateGoodBtn = el("rate-good");
-      const rateEasyBtn = el("rate-easy");
-
-      const shuffleBtn = el("shuffle");
-      const exportBtn = el("export-btn");
-      const resetBtn = el("reset-btn");
-      const copyPromptBtn = el("copy-prompt");
-
-      const manualForm = el("manual-form");
-      const fileInput = el("tsv-file");
-      const importBtn = el("import-btn");
-      const statusEl = el("status");
-
-      const toggleDbBtn = el("toggle-db");
-      const dbPanel = el("db-panel");
-      const listContainer = el("card-list");
-
-      // =========================
-      // App state
-      // =========================
-      let deck = [];
-      let currentIndex = 0; // index in deck
-      let showTranslation = false;
-      let showPinyin = true;
-      let uiShowDb = false;
-
-      // =========================
-      // Study order (by due)
-      // =========================
-      function getIndicesSortedByDue() {
-        const indices = deck.map((_, i) => i);
-        indices.sort((a, b) => {
-          ensureSrs(deck[a]);
-          ensureSrs(deck[b]);
-          return deck[a].srs.due - deck[b].srs.due;
-        });
-        return indices;
-      }
-
-      function getDueIndices() {
-        const t = nowMs();
-        return getIndicesSortedByDue().filter((i) => deck[i].srs.due <= t);
-      }
-
-      function getStudyOrder() {
-        const due = getDueIndices();
-        if (due.length > 0) return due;
-        return getIndicesSortedByDue();
-      }
-
-      function clampCurrentToOrder(order) {
-        if (deck.length === 0) {
-          currentIndex = 0;
-          return;
-        }
-        if (!order.includes(currentIndex)) currentIndex = order[0];
-      }
-
-      // =========================
-      // Storage
-      // =========================
-      function saveDeck() {
+      function save() {
         const payload = {
-          version: 4,
-          updatedAt: new Date().toISOString(),
-          cards: deck,
-          currentIndex,
-          showTranslation,
-          showPinyin,
-          ui: { showDb: uiShowDb },
+          cards: state.cards,
+          currentId: state.currentId,
+          showPinyin: state.showPinyin,
+          autoSpeak: state.autoSpeak,
+          dueOnly: state.dueOnly,
+          mode: state.mode,
+          pinnedCardId: state.pinnedCardId,
+          voiceURI: state.voiceURI,
+          speechRate: state.speechRate,
+          deckOrder: state.deckOrder,
+          sessionReviews: state.sessionReviews,
+          lastReviewedDay: state.lastReviewedDay
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       }
 
-      function migrateFromV3IfExists() {
-        const oldKey = "flashcards_mandarin_v3";
-        const raw = localStorage.getItem(oldKey);
-        if (!raw) return false;
-
+      function load() {
         try {
-          const data = JSON.parse(raw);
-          if (!data || data.version !== 3 || !Array.isArray(data.cards)) return false;
-
-          deck = data.cards
-            .filter(isValidCard)
-            .map((c) => ({
-              hanzi: normalizeText(c.hanzi),
-              pinyin: normalizeText(c.pinyin),
-              pt: normalizeText(c.pt),
-              srs: c.srs && typeof c.srs === "object" ? { ...c.srs } : defaultSrs(),
-            }));
-          deck.forEach(ensureSrs);
-
-          currentIndex = Number.isInteger(data.currentIndex) ? data.currentIndex : 0;
-          showTranslation = typeof data.showAnswer === "boolean" ? data.showAnswer : false;
-          showPinyin = true;
-          uiShowDb = !!(data.ui && data.ui.showDb);
-
-          const order = getStudyOrder();
-          clampCurrentToOrder(order);
-
-          saveDeck();
-          return true;
-        } catch {
-          return false;
-        }
-      }
-
-      function migrateFromV2IfExists() {
-        const oldKey = "flashcards_mandarin_v2";
-        const raw = localStorage.getItem(oldKey);
-        if (!raw) return false;
-
-        try {
-          const data = JSON.parse(raw);
-          if (!data || data.version !== 2 || !Array.isArray(data.cards)) return false;
-
-          deck = data.cards
-            .filter(isValidCard)
-            .map((c) => ({
-              hanzi: normalizeText(c.hanzi),
-              pinyin: normalizeText(c.pinyin),
-              pt: normalizeText(c.pt),
-              srs: defaultSrs(),
-            }));
-          deck.forEach(ensureSrs);
-
-          currentIndex = Number.isInteger(data.currentIndex) ? data.currentIndex : 0;
-          showTranslation = false;
-          showPinyin = true;
-          uiShowDb = false;
-
-          const order = getStudyOrder();
-          clampCurrentToOrder(order);
-
-          saveDeck();
-          return true;
-        } catch {
-          return false;
-        }
-      }
-
-      function loadDeck() {
-        const raw = localStorage.getItem(STORAGE_KEY);
-
-        if (!raw) {
-          if (migrateFromV3IfExists()) return;
-          if (migrateFromV2IfExists()) return;
-
-          deck = DEFAULT_CARDS.map((c) => ({ ...c, srs: defaultSrs() }));
-          currentIndex = 0;
-          showTranslation = false;
-          showPinyin = true;
-          uiShowDb = false;
-          saveDeck();
-          return;
-        }
-
-        try {
-          const data = JSON.parse(raw);
-          if (!data || data.version !== 4 || !Array.isArray(data.cards)) throw new Error("invalid");
-
-          deck = data.cards
-            .filter(isValidCard)
-            .map((c) => ({
-              hanzi: normalizeText(c.hanzi),
-              pinyin: normalizeText(c.pinyin),
-              pt: normalizeText(c.pt),
-              srs: c.srs && typeof c.srs === "object" ? { ...c.srs } : defaultSrs(),
-            }));
-
-          deck.forEach(ensureSrs);
-
-          currentIndex = Number.isInteger(data.currentIndex) ? data.currentIndex : 0;
-          showTranslation = typeof data.showTranslation === "boolean" ? data.showTranslation : false;
-          showPinyin = typeof data.showPinyin === "boolean" ? data.showPinyin : true;
-          uiShowDb = !!(data.ui && data.ui.showDb);
-
-          if (deck.length === 0) {
-            deck = DEFAULT_CARDS.map((c) => ({ ...c, srs: defaultSrs() }));
-            currentIndex = 0;
-            showTranslation = false;
-            showPinyin = true;
-            uiShowDb = false;
+          const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          if (!raw || !Array.isArray(raw.cards) || raw.cards.length === 0) {
+            state.cards = DEFAULT_CARDS.map((entry) => toCard(entry));
+            state.deckOrder = state.cards.map((c) => c.id);
+            state.currentId = state.cards[0].id;
+            state.lastReviewedDay = todayKey();
+            save();
+            return;
           }
 
-          const order = getStudyOrder();
-          clampCurrentToOrder(order);
+          state.cards = raw.cards
+            .filter((item) => item && item.chinese && item.pinyin && item.english)
+            .map((item) => ({
+              id: item.id || uid(),
+              chinese: normalize(item.chinese),
+              pinyin: normalize(item.pinyin),
+              english: normalize(item.english),
+              box: Number(item.box) || 1,
+              nextDueAt: Number(item.nextDueAt) || nowMs(),
+              createdAt: Number(item.createdAt) || nowMs(),
+              lastReviewedAt: Number(item.lastReviewedAt) || 0,
+              reviews: Number(item.reviews) || 0,
+              successes: Number(item.successes) || 0
+            }));
+
+          state.currentId = raw.currentId || (state.cards[0] ? state.cards[0].id : "");
+          state.showPinyin = raw.showPinyin !== false;
+          state.autoSpeak = raw.autoSpeak === true;
+          state.dueOnly = raw.dueOnly === true;
+          state.mode = ["smart", "sequential", "random"].includes(raw.mode) ? raw.mode : "smart";
+          state.pinnedCardId = raw.pinnedCardId || "";
+          state.voiceURI = normalize(raw.voiceURI);
+          state.speechRate = Number(raw.speechRate) || 0.85;
+          state.deckOrder = Array.isArray(raw.deckOrder) ? raw.deckOrder.filter(Boolean) : [];
+          state.sessionReviews = Number(raw.sessionReviews) || 0;
+          state.lastReviewedDay = normalize(raw.lastReviewedDay) || todayKey();
+
+          repairDeckOrder();
+          ensureCurrentCardExists();
+          maybeRotateDailySession();
         } catch {
-          deck = DEFAULT_CARDS.map((c) => ({ ...c, srs: defaultSrs() }));
-          currentIndex = 0;
-          showTranslation = false;
-          showPinyin = true;
-          uiShowDb = false;
-          saveDeck();
+          state.cards = DEFAULT_CARDS.map((entry) => toCard(entry));
+          state.deckOrder = state.cards.map((c) => c.id);
+          state.currentId = state.cards[0].id;
+          save();
         }
       }
 
-      // =========================
-      // UI updates
-      // =========================
-      function setFlipButton() {
-        flipBtn.textContent = showTranslation ? "Ocultar tradução" : "Mostrar tradução";
-        cardHint.textContent = showTranslation
-          ? "Avalie (Errei/Difícil/Ok/Fácil) para agendar."
-          : "Clique no cartão para revelar a tradução.";
+      function maybeRotateDailySession() {
+        const today = todayKey();
+        if (state.lastReviewedDay !== today) {
+          state.sessionReviews = 0;
+          state.lastReviewedDay = today;
+          save();
+        }
       }
 
-      function updateHeaderBadges() {
-        cardCount.textContent = `${deck.length} cartões`;
+      function repairDeckOrder() {
+        const idSet = new Set(state.cards.map((c) => c.id));
+        const cleaned = state.deckOrder.filter((id) => idSet.has(id));
+        for (const card of state.cards) {
+          if (!cleaned.includes(card.id)) cleaned.push(card.id);
+        }
+        state.deckOrder = cleaned;
+      }
 
-        const due = getDueIndices();
-        dueCount.textContent = `${due.length} vencidos`;
+      function ensureCurrentCardExists() {
+        if (!state.cards.some((c) => c.id === state.currentId)) {
+          state.currentId = state.cards[0] ? state.cards[0].id : "";
+        }
+      }
 
-        if (deck.length === 0) {
-          nextDue.textContent = "próximo: —";
-          return;
+      function currentCard() {
+        return state.cards.find((card) => card.id === state.currentId) || null;
+      }
+
+      function dueCards() {
+        const now = nowMs();
+        return state.cards.filter((card) => card.nextDueAt <= now);
+      }
+
+      function activePool() {
+        if (state.dueOnly) {
+          const due = dueCards();
+          return due.length > 0 ? due : state.cards;
+        }
+        return state.cards;
+      }
+
+      function cardById(id) {
+        return state.cards.find((card) => card.id === id) || null;
+      }
+
+      function pickNextId(direction) {
+        const pool = activePool();
+        if (pool.length === 0) return "";
+
+        if (state.pinnedCardId && pool.some((c) => c.id === state.pinnedCardId)) {
+          return state.pinnedCardId;
         }
 
-        const order = getIndicesSortedByDue();
-        const soonest = order.length ? deck[order[0]].srs.due : null;
-        const t = nowMs();
-
-        if (soonest == null) nextDue.textContent = "próximo: —";
-        else if (soonest <= t) nextDue.textContent = "próximo: agora";
-        else nextDue.textContent = `próximo: ${formatDateTime(soonest)}`;
-      }
-
-      function updatePinyinToggleButton() {
-        togglePinyinBtn.textContent = showPinyin ? "Ocultar pinyin" : "Mostrar pinyin";
-      }
-
-      function updateCardView() {
-        updateHeaderBadges();
-        updatePinyinToggleButton();
-
-        if (deck.length === 0) {
-          cardHanzi.textContent = "Sem cartões";
-          cardPinyin.textContent = "";
-          cardPinyin.classList.add("hide");
-          cardPt.textContent = "Adicione novos cartões para estudar";
-          showTranslation = true;
-          setFlipButton();
-          saveDeck();
-          return;
+        if (state.mode === "random") {
+          const options = pool.filter((c) => c.id !== state.currentId);
+          const randomTarget = options.length > 0 ? options[Math.floor(Math.random() * options.length)] : pool[0];
+          return randomTarget.id;
         }
 
-        const order = getStudyOrder();
-        clampCurrentToOrder(order);
-
-        const card = deck[currentIndex];
-        ensureSrs(card);
-
-        cardHanzi.textContent = card.hanzi;
-
-        if (showPinyin) {
-          cardPinyin.textContent = card.pinyin;
-          cardPinyin.classList.remove("hide");
-        } else {
-          cardPinyin.textContent = "";
-          cardPinyin.classList.add("hide");
-        }
-
-        cardPt.textContent = showTranslation ? card.pt : "••••••";
-        setFlipButton();
-      }
-
-      // =========================
-      // List (DB panel)
-      // =========================
-      function createListItem(card, index) {
-        ensureSrs(card);
-
-        const item = document.createElement("div");
-        item.className = "list-item";
-        item.dataset.index = String(index);
-
-        const strong = document.createElement("strong");
-        strong.textContent = card.hanzi;
-
-        const pinyin = document.createElement("span");
-        pinyin.textContent = card.pinyin;
-
-        const pt = document.createElement("span");
-        pt.textContent = card.pt;
-
-        const meta = document.createElement("small");
-        const dueLabel = card.srs.due <= nowMs() ? "VENCIDO" : "agendado";
-        meta.textContent = `${dueLabel} • due: ${formatDateTime(card.srs.due)} • reps: ${card.srs.reps} • ease: ${card.srs.ease.toFixed(
-          2
-        )} • int: ${card.srs.interval}d`;
-
-        const actions = document.createElement("div");
-        actions.className = "list-item-actions";
-
-        const studyBtn = document.createElement("button");
-        studyBtn.type = "button";
-        studyBtn.className = "secondary";
-        studyBtn.textContent = "Estudar este";
-        studyBtn.dataset.action = "study";
-
-        const delBtn = document.createElement("button");
-        delBtn.type = "button";
-        delBtn.className = "danger";
-        delBtn.textContent = "Remover";
-        delBtn.dataset.action = "delete";
-
-        actions.appendChild(studyBtn);
-        actions.appendChild(delBtn);
-
-        item.appendChild(strong);
-        item.appendChild(pinyin);
-        item.appendChild(pt);
-        item.appendChild(meta);
-        item.appendChild(actions);
-
-        return item;
-      }
-
-      function updateList() {
-        if (!uiShowDb) return;
-        listContainer.innerHTML = "";
-        const frag = document.createDocumentFragment();
-        deck.forEach((card, idx) => frag.appendChild(createListItem(card, idx)));
-        listContainer.appendChild(frag);
-      }
-
-      function setDbVisibility(show) {
-        uiShowDb = !!show;
-        if (uiShowDb) {
-          dbPanel.classList.remove("hide");
-          toggleDbBtn.textContent = "Esconder banco";
-          updateList();
-        } else {
-          dbPanel.classList.add("hide");
-          toggleDbBtn.textContent = "Mostrar banco";
-        }
-        saveDeck();
-      }
-
-      // =========================
-      // CRUD + Import/Export
-      // =========================
-      function addCard(card) {
-        if (!isValidCard(card)) {
-          setStatus("Preencha hanzi, pinyin e tradução.", "err");
-          return false;
-        }
-
-        const normalized = {
-          hanzi: normalizeText(card.hanzi),
-          pinyin: normalizeText(card.pinyin),
-          pt: normalizeText(card.pt),
-          srs: defaultSrs(),
-        };
-
-        const key = makeKey(normalized);
-        const keys = new Set(deck.map(makeKey));
-        if (keys.has(key)) {
-          setStatus("Esse cartão já existe (duplicado).", "err");
-          return false;
-        }
-
-        deck.push(normalized);
-
-        currentIndex = deck.length - 1;
-        showTranslation = false;
-
-        saveDeck();
-        updateCardView();
-        updateList();
-        setStatus("Cartão adicionado com sucesso.", "ok");
-        return true;
-      }
-
-      function parseTSV(text) {
-        const normalized = String(text || "")
-          .replace(/^\uFEFF/, "")
-          .replace(/\r\n/g, "\n")
-          .replace(/\r/g, "\n");
-
-        const lines = normalized
-          .split("\n")
-          .map((l) => l.trim())
-          .filter((l) => l.length > 0);
-
-        const cards = [];
-        for (const line of lines) {
-          const cols = line.split("\t");
-          const hanzi = normalizeText(cols[0] ?? "");
-          const pinyin = normalizeText(cols[1] ?? "");
-          const pt = normalizeText(cols[2] ?? "");
-          if (hanzi && pinyin && pt) {
-            cards.push({ hanzi, pinyin, pt, srs: defaultSrs() });
+        if (state.mode === "smart") {
+          const due = pool.filter((c) => c.nextDueAt <= nowMs());
+          if (due.length > 0) {
+            due.sort((a, b) => a.nextDueAt - b.nextDueAt || a.box - b.box);
+            if (direction > 0) return due[0].id;
+            return due[due.length - 1].id;
           }
         }
-        return cards;
+
+        const order = state.deckOrder.filter((id) => pool.some((c) => c.id === id));
+        if (order.length === 0) return pool[0].id;
+
+        const idx = Math.max(0, order.indexOf(state.currentId));
+        const nextIndex = (idx + direction + order.length) % order.length;
+        return order[nextIndex];
       }
 
-      function fisherYatesShuffle(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
+      function computeIntervalDays(card, grade) {
+        const base = [0, 1, 2, 4, 7, 12, 20, 35, 50];
+        if (grade === "again") return 0.0035;
+        if (grade === "hard") return Math.max(0.5, base[Math.min(base.length - 1, card.box - 1)] * 0.65);
+        if (grade === "good") return base[Math.min(base.length - 1, card.box)];
+        return base[Math.min(base.length - 1, card.box + 1)] * 1.5;
+      }
+
+      function reviewCurrent(grade) {
+        const card = currentCard();
+        if (!card) return;
+
+        if (grade === "again") {
+          card.box = 1;
+        } else if (grade === "hard") {
+          card.box = Math.max(1, card.box);
+          card.successes += 1;
+        } else if (grade === "good") {
+          card.box = Math.min(9, card.box + 1);
+          card.successes += 1;
+        }
+
+        card.reviews += 1;
+        card.lastReviewedAt = nowMs();
+        card.nextDueAt = nowMs() + computeIntervalDays(card, grade) * DAY_MS;
+
+        state.sessionReviews += 1;
+        state.isFlipped = false;
+        state.currentId = pickNextId(1);
+        showNotice("Revisão salva: " + grade.toUpperCase(), "ok");
+        save();
+        render();
+
+        if (state.autoSpeak) {
+          speakCurrentChinese();
+        }
+      }
+
+      function formatDue(ms) {
+        if (!ms) return "agora";
+        const delta = ms - nowMs();
+        if (delta <= 0) return "agora";
+        const hours = Math.round(delta / (60 * 60 * 1000));
+        if (hours < 24) return "em " + hours + "h";
+        return "em " + Math.round(hours / 24) + "d";
+      }
+
+      function renderStats() {
+        const due = dueCards().length;
+        const mastered = state.cards.filter((c) => c.box >= 6).length;
+        const streak = state.sessionReviews;
+        const pinned = state.pinnedCardId ? "1" : "0";
+
+        els.statsRow.innerHTML = "";
+        const chips = [
+          "Deck: " + state.cards.length,
+          "Due: " + due,
+          "Mastered: " + mastered,
+          "Sessão: " + streak,
+          "Pinned: " + pinned
+        ];
+
+        for (const text of chips) {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = text;
+          els.statsRow.appendChild(chip);
+        }
+      }
+
+      function renderCard() {
+        const card = currentCard();
+        if (!card) {
+          els.frontHanzi.textContent = "—";
+          els.frontPinyin.textContent = "Sem cartões";
+          els.backEnglish.textContent = "Add cards";
+          els.backPinyin.textContent = "";
+          els.backHanzi.textContent = "";
+          return;
+        }
+
+        els.frontHanzi.textContent = card.chinese;
+        els.frontPinyin.textContent = state.showPinyin ? card.pinyin : "••••••";
+        els.backEnglish.textContent = card.english;
+        els.backPinyin.textContent = state.showPinyin ? card.pinyin : "••••••";
+        els.backHanzi.textContent = card.chinese;
+        els.flashcard.classList.toggle("is-flipped", state.isFlipped);
+        els.pinBtn.textContent = state.pinnedCardId === card.id ? "📍" : "📌";
+      }
+
+      function renderProgress() {
+        const pool = activePool();
+        const currentIndex = Math.max(0, pool.findIndex((item) => item.id === state.currentId));
+        const total = Math.max(1, pool.length);
+        const current = Math.min(total, currentIndex + 1);
+        const percent = (current / total) * 100;
+
+        els.progressText.innerHTML = "第 <strong>" + current + "</strong> 个 / <strong>" + total + "</strong> • próximo: " + nextDueLabel();
+        els.progressFill.style.width = percent + "%";
+      }
+
+      function nextDueLabel() {
+        const sorted = [...state.cards].sort((a, b) => a.nextDueAt - b.nextDueAt);
+        if (sorted.length === 0) return "—";
+        return formatDue(sorted[0].nextDueAt);
+      }
+
+      function renderDeckList() {
+        els.deckList.innerHTML = "";
+        if (state.cards.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "empty";
+          empty.textContent = "Sem cartões no deck.";
+          els.deckList.appendChild(empty);
+          return;
+        }
+
+        const ordered = state.deckOrder.map((id) => cardById(id)).filter(Boolean);
+        for (const card of ordered) {
+          const item = document.createElement("article");
+          item.className = "list-item";
+
+          const top = document.createElement("div");
+          top.className = "list-top";
+
+          const left = document.createElement("strong");
+          left.textContent = card.chinese;
+          top.appendChild(left);
+
+          const actions = document.createElement("div");
+          actions.className = "item-actions";
+
+          const jumpBtn = document.createElement("button");
+          jumpBtn.className = "btn btn-soft tiny";
+          jumpBtn.type = "button";
+          jumpBtn.textContent = "Ir";
+          jumpBtn.addEventListener("click", () => {
+            state.currentId = card.id;
+            state.isFlipped = false;
+            save();
+            render();
+          });
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "btn btn-soft tiny";
+          deleteBtn.type = "button";
+          deleteBtn.textContent = "Del";
+          deleteBtn.addEventListener("click", () => {
+            if (state.cards.length <= 1) {
+              showNotice("Mantenha pelo menos 1 cartão.", "error");
+              return;
+            }
+            state.cards = state.cards.filter((c) => c.id !== card.id);
+            state.deckOrder = state.deckOrder.filter((id) => id !== card.id);
+            if (state.pinnedCardId === card.id) state.pinnedCardId = "";
+            ensureCurrentCardExists();
+            save();
+            render();
+            showNotice("Cartão removido.", "ok");
+          });
+
+          actions.appendChild(jumpBtn);
+          actions.appendChild(deleteBtn);
+          top.appendChild(actions);
+
+          const pinyin = document.createElement("div");
+          pinyin.className = "muted";
+          pinyin.textContent = card.pinyin;
+
+          const english = document.createElement("div");
+          english.className = "muted";
+          english.textContent = card.english;
+
+          const due = document.createElement("div");
+          due.className = "muted";
+          due.textContent = "box " + card.box + " • due " + formatDue(card.nextDueAt);
+
+          item.appendChild(top);
+          item.appendChild(pinyin);
+          item.appendChild(english);
+          item.appendChild(due);
+
+          els.deckList.appendChild(item);
+        }
+      }
+
+      function renderControls() {
+        els.modeSelect.value = state.mode;
+        els.speechRate.value = String(state.speechRate);
+        els.autospeakBtn.textContent = "Auto speak: " + (state.autoSpeak ? "on" : "off");
+        els.dueFilterBtn.textContent = "Só vencidos: " + (state.dueOnly ? "on" : "off");
+        els.togglePinyinBtn.textContent = state.showPinyin ? "Ocultar pinyin" : "Mostrar pinyin";
+      }
+
+      function render() {
+        renderStats();
+        renderCard();
+        renderProgress();
+        renderDeckList();
+        renderControls();
+      }
+
+      function flipCard() {
+        if (!currentCard()) return;
+        state.isFlipped = !state.isFlipped;
+        renderCard();
+      }
+
+      function gotoNext() {
+        state.currentId = pickNextId(1);
+        state.isFlipped = false;
+        save();
+        render();
+      }
+
+      function gotoPrev() {
+        state.currentId = pickNextId(-1);
+        state.isFlipped = false;
+        save();
+        render();
+      }
+
+      function shuffleDeck() {
+        const order = [...state.deckOrder];
+        for (let i = order.length - 1; i > 0; i -= 1) {
           const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
+          const temp = order[i];
+          order[i] = order[j];
+          order[j] = temp;
         }
+        state.deckOrder = order;
+        state.currentId = state.deckOrder[0] || state.currentId;
+        state.isFlipped = false;
+        save();
+        render();
+        showNotice("Deck embaralhado.", "ok");
+      }
+
+      function resetProgress() {
+        for (const card of state.cards) {
+          card.box = 1;
+          card.nextDueAt = nowMs();
+          card.lastReviewedAt = 0;
+          card.reviews = 0;
+          card.successes = 0;
+        }
+        state.sessionReviews = 0;
+        state.currentId = state.cards[0] ? state.cards[0].id : "";
+        state.isFlipped = false;
+        save();
+        render();
+        showNotice("Progresso resetado.", "ok");
+      }
+
+      function showNotice(message, tone) {
+        els.notice.textContent = message || "";
+        els.notice.className = "notice" + (tone ? " " + tone : "");
+      }
+
+      function uniqueKey(chinese, pinyin, english) {
+        return [normalize(chinese), normalize(pinyin), normalize(english)].join("||").toLowerCase();
+      }
+
+      function addCard(chinese, pinyin, english) {
+        const c = normalize(chinese);
+        const p = normalize(pinyin);
+        const e = normalize(english);
+        if (!c || !p || !e) return { ok: false, reason: "Preencha todos os campos." };
+
+        const key = uniqueKey(c, p, e);
+        const existing = new Set(state.cards.map((item) => uniqueKey(item.chinese, item.pinyin, item.english)));
+        if (existing.has(key)) {
+          return { ok: false, reason: "Cartão duplicado." };
+        }
+
+        const card = toCard([c, p, e]);
+        state.cards.push(card);
+        state.deckOrder.push(card.id);
+        state.currentId = card.id;
+        state.isFlipped = false;
+        save();
+        render();
+        return { ok: true };
+      }
+
+      function importTSV(tsvText) {
+        const lines = String(tsvText || "")
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        if (lines.length === 0) {
+          return { ok: false, reason: "Nenhuma linha TSV detectada." };
+        }
+
+        const existing = new Set(state.cards.map((item) => uniqueKey(item.chinese, item.pinyin, item.english)));
+        let added = 0;
+        let invalid = 0;
+        let duplicates = 0;
+
+        for (const line of lines) {
+          const parts = line.split("\t");
+          if (parts.length < 3) {
+            invalid += 1;
+            continue;
+          }
+          const c = normalize(parts[0]);
+          const p = normalize(parts[1]);
+          const e = normalize(parts.slice(2).join("\t"));
+
+          if (!c || !p || !e) {
+            invalid += 1;
+            continue;
+          }
+
+          const key = uniqueKey(c, p, e);
+          if (existing.has(key)) {
+            duplicates += 1;
+            continue;
+          }
+
+          const card = toCard([c, p, e]);
+          state.cards.push(card);
+          state.deckOrder.push(card.id);
+          existing.add(key);
+          added += 1;
+        }
+
+        if (added === 0) {
+          return { ok: false, reason: "Nada importado. inválidas: " + invalid + ", duplicadas: " + duplicates };
+        }
+
+        state.currentId = state.cards[state.cards.length - 1].id;
+        state.isFlipped = false;
+        save();
+        render();
+
+        return {
+          ok: true,
+          message: "Importado: " + added + " • inválidas: " + invalid + " • duplicadas: " + duplicates
+        };
       }
 
       function exportTSV() {
-        if (deck.length === 0) {
-          setStatus("Não há cartões para exportar.", "err");
-          return;
-        }
-        const content = deck.map((c) => `${c.hanzi}\t${c.pinyin}\t${c.pt}`).join("\n");
-        const blob = new Blob([content], { type: "text/tab-separated-values;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "flashcards-mandarim.tsv";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        URL.revokeObjectURL(url);
-        setStatus("Exportação concluída.", "ok");
+        const content = state.cards.map((card) => [card.chinese, card.pinyin, card.english].join("\t")).join("\n");
+        downloadText(content, "flashcards-china.tsv", "text/tab-separated-values;charset=utf-8");
       }
 
-      function resetToDefault() {
-        deck = DEFAULT_CARDS.map((c) => ({ ...c, srs: defaultSrs() }));
-        currentIndex = 0;
-        showTranslation = false;
-        // mantém showPinyin e uiShowDb como preferência
-        saveDeck();
-        updateCardView();
-        updateList();
-        setStatus("Banco resetado para o padrão.", "ok");
-      }
-
-      async function copyToClipboard(text) {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-          return;
-        }
-
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        ta.setAttribute("readonly", "");
-        ta.style.position = "fixed";
-        ta.style.top = "-9999px";
-        ta.style.left = "-9999px";
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-      }
-
-      // =========================
-      // TTS
-      // =========================
-      function pickChineseVoice() {
-        const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-        if (!voices || voices.length === 0) return null;
-
-        const preferredLangs = ["zh-CN", "zh-HK", "zh-TW", "zh"];
-        for (const lang of preferredLangs) {
-          const v = voices.find((x) => (x.lang || "").toLowerCase().startsWith(lang.toLowerCase()));
-          if (v) return v;
-        }
-        return voices[0] || null;
-      }
-
-      function speakCurrent() {
-        if (!window.speechSynthesis || typeof SpeechSynthesisUtterance !== "function") {
-          setStatus("Seu navegador não suporta TTS (speechSynthesis).", "err");
-          return;
-        }
-        if (deck.length === 0) return;
-
-        const card = deck[currentIndex];
-        const text = normalizeText(card.hanzi || card.pinyin || "");
-
-        if (!text) {
-          setStatus("Nada para falar neste cartão.", "err");
-          return;
-        }
-
-        try {
-          window.speechSynthesis.cancel();
-        } catch {}
-
-        const u = new SpeechSynthesisUtterance(text);
-
-        const looksChinese = /[\u3400-\u9FFF]/.test(text);
-        const v = pickChineseVoice();
-        if (v) u.voice = v;
-
-        u.lang = looksChinese ? (v && v.lang ? v.lang : "zh-CN") : "en-US";
-        u.rate = 0.95;
-
-        u.onerror = () => setStatus("Falha ao reproduzir áudio (TTS).", "err");
-
-        window.speechSynthesis.speak(u);
-      }
-
-      if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = () => {};
-      }
-
-      // =========================
-      // SRS actions
-      // =========================
-      function goToNextAfterRating() {
-        showTranslation = false;
-
-        const order = getStudyOrder();
-        if (order.length === 0) {
-          currentIndex = 0;
-          return;
-        }
-
-        const pos = order.indexOf(currentIndex);
-        const nextPos = pos >= 0 ? Math.min(order.length - 1, pos + 1) : 0;
-        currentIndex = order[nextPos];
-      }
-
-      function rate(quality, label) {
-        if (deck.length === 0) return;
-
-        const card = deck[currentIndex];
-        applySm2(card, quality);
-
-        saveDeck();
-        goToNextAfterRating();
-        updateCardView();
-        updateList();
-
-        const due = getDueIndices().length;
-        setStatus(`${label}. Agendado! (${due} vencidos agora)`, "ok");
-      }
-
-      // =========================
-      // Navigation / Flip
-      // =========================
-      function prevCard() {
-        if (deck.length === 0) return;
-        const order = getStudyOrder();
-        clampCurrentToOrder(order);
-        const pos = order.indexOf(currentIndex);
-        const prevPos = pos <= 0 ? 0 : pos - 1;
-        currentIndex = order[prevPos];
-        showTranslation = false;
-        saveDeck();
-        updateCardView();
-      }
-
-      function nextCard() {
-        if (deck.length === 0) return;
-        const order = getStudyOrder();
-        clampCurrentToOrder(order);
-        const pos = order.indexOf(currentIndex);
-        const nextPos = pos >= order.length - 1 ? order.length - 1 : pos + 1;
-        currentIndex = order[nextPos];
-        showTranslation = false;
-        saveDeck();
-        updateCardView();
-      }
-
-      function flip() {
-        showTranslation = !showTranslation;
-        saveDeck();
-        updateCardView();
-      }
-
-      // =========================
-      // Events
-      // =========================
-      prevBtn.addEventListener("click", () => {
-        setStatus("");
-        prevCard();
-      });
-
-      nextBtn.addEventListener("click", () => {
-        setStatus("");
-        nextCard();
-      });
-
-      flipBtn.addEventListener("click", () => {
-        setStatus("");
-        flip();
-      });
-
-      flashcard.addEventListener("click", () => {
-        setStatus("");
-        flip();
-      });
-
-      togglePinyinBtn.addEventListener("click", () => {
-        setStatus("");
-        showPinyin = !showPinyin;
-        saveDeck();
-        updateCardView();
-        setStatus(showPinyin ? "Pinyin visível." : "Pinyin oculto.", "ok");
-      });
-
-      speakBtn.addEventListener("click", () => {
-        setStatus("");
-        speakCurrent();
-      });
-
-      rateAgainBtn.addEventListener("click", () => rate(0, "Errei"));
-      rateHardBtn.addEventListener("click", () => rate(3, "Difícil"));
-      rateGoodBtn.addEventListener("click", () => rate(4, "Ok"));
-      rateEasyBtn.addEventListener("click", () => rate(5, "Fácil"));
-
-      shuffleBtn.addEventListener("click", () => {
-        setStatus("");
-        if (deck.length < 2) return;
-        fisherYatesShuffle(deck);
-        const order = getStudyOrder();
-        currentIndex = order[0] ?? 0;
-        showTranslation = false;
-        saveDeck();
-        updateCardView();
-        updateList();
-        setStatus("Deck embaralhado.", "ok");
-      });
-
-      exportBtn.addEventListener("click", () => {
-        setStatus("");
-        exportTSV();
-      });
-
-      resetBtn.addEventListener("click", () => {
-        const ok = confirm("Tem certeza? Isso vai apagar seus cartões e voltar ao padrão.");
-        if (!ok) return;
-        resetToDefault();
-      });
-
-      copyPromptBtn.addEventListener("click", async () => {
-        setStatus("");
-        try {
-          await copyToClipboard(TSV_PROMPT);
-          setStatus("Prompt copiado! Cole no ChatGPT, ajuste o [TEMA: ...] e peça o TSV.", "ok");
-        } catch {
-          setStatus("Não consegui copiar automaticamente. Tente abrir via localhost ou HTTPS.", "err");
-        }
-      });
-
-      manualForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        setStatus("");
-
-        const card = {
-          hanzi: el("hanzi").value,
-          pinyin: el("pinyin").value,
-          pt: el("pt").value,
+      function exportJSON() {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          cards: state.cards,
+          settings: {
+            mode: state.mode,
+            showPinyin: state.showPinyin,
+            autoSpeak: state.autoSpeak,
+            dueOnly: state.dueOnly
+          }
         };
+        downloadText(JSON.stringify(payload, null, 2), "flashcards-china.json", "application/json;charset=utf-8");
+      }
 
-        const added = addCard(card);
-        if (added) manualForm.reset();
-      });
+      function downloadText(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
 
-      importBtn.addEventListener("click", async () => {
-        setStatus("");
-        const file = fileInput.files && fileInput.files[0];
-        if (!file) {
-          setStatus("Selecione um arquivo .tsv antes de importar.", "err");
-          return;
+      function pickVoice() {
+        const uri = state.voiceURI;
+        if (!uri) return null;
+        const voices = window.speechSynthesis.getVoices();
+        return voices.find((voice) => voice.voiceURI === uri) || null;
+      }
+
+      function speakCurrentChinese() {
+        const card = currentCard();
+        if (!card || !("speechSynthesis" in window)) return;
+
+        const utterance = new SpeechSynthesisUtterance(card.chinese);
+        utterance.lang = "zh-CN";
+        utterance.rate = state.speechRate;
+        const chosen = pickVoice();
+        if (chosen) utterance.voice = chosen;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function populateVoiceSelect() {
+        const voices = window.speechSynthesis.getVoices();
+        const options = voices
+          .filter((v) => /zh|chinese/i.test(v.lang + " " + v.name))
+          .concat(voices.filter((v) => !/zh|chinese/i.test(v.lang + " " + v.name)));
+
+        const current = state.voiceURI;
+        els.voiceSelect.innerHTML = "";
+
+        const base = document.createElement("option");
+        base.value = "";
+        base.textContent = "Padrão do navegador";
+        els.voiceSelect.appendChild(base);
+
+        for (const voice of options) {
+          const option = document.createElement("option");
+          option.value = voice.voiceURI;
+          option.textContent = voice.name + " (" + voice.lang + ")";
+          if (voice.voiceURI === current) option.selected = true;
+          els.voiceSelect.appendChild(option);
         }
+      }
 
-        try {
-          const text = await file.text();
-          const cards = parseTSV(text);
+      function toggleHelpModal(forceOpen) {
+        const open = typeof forceOpen === "boolean" ? forceOpen : !els.helpModal.classList.contains("open");
+        els.helpModal.classList.toggle("open", open);
+      }
 
-          if (cards.length === 0) {
-            setStatus("Nenhuma linha válida encontrada. Verifique se está TAB-separado.", "err");
+      function bindEvents() {
+        els.flashcard.addEventListener("click", flipCard);
+        els.flashcard.addEventListener("keydown", (event) => {
+          if (event.key === " " || event.key === "Enter") {
+            event.preventDefault();
+            flipCard();
+          }
+        });
+
+        document.getElementById("flip-btn").addEventListener("click", flipCard);
+        document.getElementById("prev-btn").addEventListener("click", gotoPrev);
+        document.getElementById("next-btn").addEventListener("click", gotoNext);
+        document.getElementById("again-btn").addEventListener("click", () => reviewCurrent("again"));
+        document.getElementById("hard-btn").addEventListener("click", () => reviewCurrent("hard"));
+        document.getElementById("good-btn").addEventListener("click", () => reviewCurrent("good"));
+        document.getElementById("speak-btn").addEventListener("click", (event) => {
+          event.stopPropagation();
+          speakCurrentChinese();
+        });
+
+        els.pinBtn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const card = currentCard();
+          if (!card) return;
+          state.pinnedCardId = state.pinnedCardId === card.id ? "" : card.id;
+          save();
+          renderCard();
+          renderStats();
+        });
+
+        document.getElementById("shuffle-btn").addEventListener("click", shuffleDeck);
+        document.getElementById("toggle-pinyin-btn").addEventListener("click", () => {
+          state.showPinyin = !state.showPinyin;
+          save();
+          render();
+        });
+
+        document.getElementById("reset-progress-btn").addEventListener("click", resetProgress);
+        document.getElementById("help-btn").addEventListener("click", () => toggleHelpModal(true));
+        document.getElementById("close-help-btn").addEventListener("click", () => toggleHelpModal(false));
+        els.helpModal.addEventListener("click", (event) => {
+          if (event.target === els.helpModal) toggleHelpModal(false);
+        });
+
+        document.getElementById("autospeak-btn").addEventListener("click", () => {
+          state.autoSpeak = !state.autoSpeak;
+          save();
+          renderControls();
+        });
+
+        document.getElementById("due-filter-btn").addEventListener("click", () => {
+          state.dueOnly = !state.dueOnly;
+          state.currentId = pickNextId(1) || state.currentId;
+          save();
+          render();
+        });
+
+        els.modeSelect.addEventListener("change", () => {
+          state.mode = els.modeSelect.value;
+          save();
+          render();
+        });
+
+        els.voiceSelect.addEventListener("change", () => {
+          state.voiceURI = els.voiceSelect.value;
+          save();
+        });
+
+        els.speechRate.addEventListener("input", () => {
+          state.speechRate = Number(els.speechRate.value) || 0.85;
+          save();
+        });
+
+        document.getElementById("add-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const chinese = document.getElementById("chinese-input").value;
+          const pinyin = document.getElementById("pinyin-input").value;
+          const english = document.getElementById("english-input").value;
+          const result = addCard(chinese, pinyin, english);
+          if (!result.ok) {
+            showNotice(result.reason, "error");
+            return;
+          }
+          event.target.reset();
+          showNotice("Cartão adicionado.", "ok");
+          if (state.autoSpeak) speakCurrentChinese();
+        });
+
+        document.getElementById("import-tsv-btn").addEventListener("click", () => {
+          const result = importTSV(els.tsvInput.value);
+          if (!result.ok) {
+            showNotice(result.reason, "error");
+            return;
+          }
+          showNotice(result.message, "ok");
+        });
+
+        document.getElementById("export-tsv-btn").addEventListener("click", exportTSV);
+        document.getElementById("export-json-btn").addEventListener("click", exportJSON);
+        document.getElementById("clear-input-btn").addEventListener("click", () => {
+          els.tsvInput.value = "";
+          showNotice("Área TSV limpa.", "ok");
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.target && /input|textarea|select/i.test(event.target.tagName)) {
+            if (event.key === "Escape") event.target.blur();
             return;
           }
 
-          const existing = new Set(deck.map(makeKey));
-          let imported = 0;
-          for (const c of cards) {
-            const key = makeKey(c);
-            if (existing.has(key)) continue;
-            ensureSrs(c);
-            deck.push({
-              hanzi: normalizeText(c.hanzi),
-              pinyin: normalizeText(c.pinyin),
-              pt: normalizeText(c.pt),
-              srs: c.srs,
-            });
-            existing.add(key);
-            imported++;
-          }
-
-          if (imported === 0) {
-            setStatus("Nada novo para importar (tudo duplicado).", "err");
+          const key = event.key.toLowerCase();
+          if (key === " ") {
+            event.preventDefault();
+            flipCard();
             return;
           }
-
-          const order = getStudyOrder();
-          currentIndex = order[0] ?? 0;
-          showTranslation = false;
-
-          saveDeck();
-          updateCardView();
-          updateList();
-          setStatus(`Importados ${imported} cartão(ões).`, "ok");
-          fileInput.value = "";
-        } catch {
-          setStatus("Falha ao ler o arquivo. Tente novamente.", "err");
-        }
-      });
-
-      // DB panel toggle
-      toggleDbBtn.addEventListener("click", () => {
-        setStatus("");
-        setDbVisibility(!uiShowDb);
-      });
-
-      // list actions (delegation)
-      listContainer.addEventListener("click", (e) => {
-        const btn = e.target.closest("button");
-        if (!btn) return;
-
-        const item = btn.closest(".list-item");
-        if (!item) return;
-
-        const index = Number(item.dataset.index);
-        if (!Number.isInteger(index) || index < 0 || index >= deck.length) return;
-
-        const action = btn.dataset.action;
-        if (action === "study") {
-          currentIndex = index;
-          showTranslation = false;
-          saveDeck();
-          updateCardView();
-          setStatus("Indo para o cartão selecionado.", "ok");
-          flashcard.focus();
-          return;
-        }
-
-        if (action === "delete") {
-          const ok = confirm("Remover este cartão?");
-          if (!ok) return;
-
-          deck.splice(index, 1);
-
-          if (deck.length === 0) currentIndex = 0;
-          else {
-            const order = getStudyOrder();
-            currentIndex = order[0] ?? 0;
+          if (key === "enter") {
+            flipCard();
+            return;
           }
-
-          showTranslation = false;
-          saveDeck();
-          updateCardView();
-          updateList();
-          setStatus("Cartão removido.", "ok");
-        }
-      });
-
-      // keyboard:
-      // ← → navigate
-      // Space/Enter flip
-      // 1..4 rate
-      // A = audio
-      // P = toggle pinyin
-      document.addEventListener("keydown", (e) => {
-        const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
-        const typing = tag === "input" || tag === "textarea";
-        if (typing) return;
-
-        if (e.key === "ArrowLeft") return prevBtn.click();
-        if (e.key === "ArrowRight") return nextBtn.click();
-
-        if (e.key === " " || e.key === "Enter") {
-          if (document.activeElement === flashcard || document.activeElement === flipBtn || document.activeElement === document.body) {
-            e.preventDefault();
-            flip();
+          if (key === "arrowleft") {
+            gotoPrev();
+            return;
           }
-          return;
+          if (key === "arrowright") {
+            gotoNext();
+            return;
+          }
+          if (key === "a") {
+            speakCurrentChinese();
+            return;
+          }
+          if (key === "g") {
+            reviewCurrent("good");
+            return;
+          }
+          if (key === "h") {
+            reviewCurrent("hard");
+            return;
+          }
+          if (key === "r") {
+            reviewCurrent("again");
+            return;
+          }
+          if (key === "p") {
+            state.showPinyin = !state.showPinyin;
+            save();
+            render();
+            return;
+          }
+          if (key === "s") {
+            shuffleDeck();
+            return;
+          }
+          if (key === "?") {
+            toggleHelpModal();
+            return;
+          }
+          if (key === "escape" && els.helpModal.classList.contains("open")) {
+            toggleHelpModal(false);
+          }
+        });
+      }
+
+      function init() {
+        load();
+        bindEvents();
+        populateVoiceSelect();
+        window.speechSynthesis.addEventListener("voiceschanged", populateVoiceSelect);
+
+        if (!state.currentId && state.cards[0]) {
+          state.currentId = state.cards[0].id;
         }
 
-        if (e.key === "1") return rateAgainBtn.click();
-        if (e.key === "2") return rateHardBtn.click();
-        if (e.key === "3") return rateGoodBtn.click();
-        if (e.key === "4") return rateEasyBtn.click();
+        render();
+      }
 
-        if (e.key.toLowerCase() === "a") return speakBtn.click();
-        if (e.key.toLowerCase() === "p") return togglePinyinBtn.click();
-      });
-
-      // =========================
-      // Init
-      // =========================
-      loadDeck();
-      setDbVisibility(uiShowDb);
-      updateCardView();
-      updateList();
-      setStatus("Pronto. ← → navega, clique/Enter vira, 1-4 avalia, A áudio, P pinyin.");
+      init();
     </script>
   </body>
 </html>
